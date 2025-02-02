@@ -4,12 +4,18 @@ const DataContext = createContext();
 
 const initialState = {
     items: [],
+    lastId: 0,
 };
 
 const dataReducer = (state, action) => {
     switch (action.type) {
         case "ADD_ITEM":
-            return { ...state, items: [...state.items, action.payload] };
+            const newId = state.lastId + 1;
+            return {
+                ...state,
+                items: [...state.items, { ...action.payload, id: newId }],
+                lastId: newId,
+            };
         case "REMOVE_ITEM":
             return {
                 ...state,
@@ -19,16 +25,14 @@ const dataReducer = (state, action) => {
             return {
                 ...state,
                 items: state.items.map((item) =>
-                    item.numero === action.payload ? { ...item, isActive: false } : item
+                    item.id === action.payload ? { ...item, isActive: false } : item
                 ),
             };
         case "UPDATE_ITEM":
             return {
                 ...state,
                 items: state.items.map((item) =>
-                    item.numero === action.originalNumero
-                        ? { ...item, ...action.payload }
-                        : item
+                    item.id === action.payload.id ? { ...item, ...action.payload } : item
                 ),
             };
         default:

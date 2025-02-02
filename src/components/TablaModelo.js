@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import { Edit, Delete } from "@mui/icons-material";
 
 export const Table = styled.table`
     margin-top: 20px;
@@ -24,27 +25,49 @@ export const Img = styled.img`
     height: 50px;
 `;
 
-const TablaCatalogo = ({ modelos }) => {
+export const IconButton = styled.button`
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    &:hover {
+        background-color: dimgray;
+    }
+`;
+
+const TablaModelo = ({ modelos,
+                           handleEditModel,
+                           handleDeleteModel }) => {
     const data = Array.isArray(modelos) ? modelos : [modelos];
 
     return (
         <Table>
             <thead>
             <tr>
-                <Th>ID</Th>
                 <Th>Descripción</Th>
                 <Th>Peso</Th>
                 <Th>Imagen</Th>
+                <Th>Editar</Th>
+                <Th>Eliminar</Th>
             </tr>
             </thead>
             <tbody>
-            {data.map((modelo) => (
-                <tr key={modelo.id}>
-                    <Td>{modelo.id}</Td>
+            {data.map((modelo, index) => (
+                <tr key={index}>
                     <Td>{modelo.descripcion}</Td>
                     <Td>{modelo.peso} kg</Td>
                     <Td>
                         <Img src={modelo.imagen} alt="Modelo" />
+                    </Td>
+                    <Td>
+                        <IconButton onClick={() => handleEditModel(modelo)}>
+                            <Edit />
+                        </IconButton>
+                    </Td>
+                    <Td>
+                        <IconButton onClick={() => handleDeleteModel(modelo)}>
+                            <Delete />
+                        </IconButton>
                     </Td>
                 </tr>
             ))}
@@ -53,5 +76,4 @@ const TablaCatalogo = ({ modelos }) => {
     );
 };
 
-export default TablaCatalogo;
-
+export default TablaModelo;

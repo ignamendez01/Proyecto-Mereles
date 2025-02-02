@@ -11,13 +11,17 @@ const BajaCatalogo = () => {
     const navigate = useNavigate();
 
     const handleSelectChange = (event) => {
-        const model = modelos.find(m => m.numero === event.target.value);
-        setSelectedModel(model || null);
+        const model = modelos.find(m => m.id === parseInt(event.target.value));
+        if (model && model.id) {
+            setSelectedModel(model);
+        } else {
+            setSelectedModel(null);
+        }
     };
 
     const handleEliminar = () => {
         if (selectedModel) {
-            dispatch({ type: "DESACTIVATE_ITEM", payload: selectedModel.numero });
+            dispatch({ type: "DESACTIVATE_ITEM", payload: selectedModel.id });
             setSelectedModel(null);
         }
     };
@@ -31,8 +35,8 @@ const BajaCatalogo = () => {
                     <option value="">Seleccione un modelo</option>
                     {modelos.length > 0 ? (
                         modelos.map((modelo) => (
-                            <option key={modelo.numero} value={modelo.numero}>
-                                {modelo.numero} - {modelo.descripcion}
+                            <option key={modelo.id} value={modelo.id}>
+                                {modelo.id} - {modelo.descripcion}
                             </option>
                         ))
                     ) : (

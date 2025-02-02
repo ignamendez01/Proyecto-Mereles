@@ -36,7 +36,6 @@ export const Img = styled.img`
 `;
 
 const CatalogoModal = ({ isOpen, onClose, onSubmit, modelData, title }) => {
-    const [numero, setNumero] = useState("");
     const [descripcion, setDescripcion] = useState("");
     const [peso, setPeso] = useState("");
     const [imagen, setImagen] = useState(null);
@@ -45,7 +44,6 @@ const CatalogoModal = ({ isOpen, onClose, onSubmit, modelData, title }) => {
 
     useEffect(() => {
         if (modelData) {
-            setNumero(modelData.numero);
             setDescripcion(modelData.descripcion);
             setPeso(modelData.peso);
             setImagen(modelData.imagen || imagenPorDefecto);
@@ -62,15 +60,14 @@ const CatalogoModal = ({ isOpen, onClose, onSubmit, modelData, title }) => {
     };
 
     const handleSubmit = () => {
-        if (!numero || !descripcion || !peso || !imagen) return;
-        const newModel = { numero, descripcion, peso, imagen };
+        if (!descripcion || !peso || !imagen) return;
+        const newModel = { descripcion, peso, imagen };
         onSubmit(newModel);
         resetForm();
         onClose();
     };
 
     const resetForm = () => {
-        setNumero("");
         setDescripcion("");
         setPeso("");
         setImagen(imagenPorDefecto);
@@ -81,21 +78,13 @@ const CatalogoModal = ({ isOpen, onClose, onSubmit, modelData, title }) => {
         onClose()
     };
 
-    const isDisabled = !numero || !descripcion || !peso || !imagen;
+    const isDisabled = !descripcion || !peso || imagen === imagenPorDefecto;
 
     return (
         isOpen && (
             <ModalOverlay>
                 <ModalContent>
                     <h2>{title}</h2>
-                    <div className="input-container">
-                        <label>ID:</label>
-                        <Input
-                            type="number"
-                            value={numero}
-                            onChange={(e) => setNumero(e.target.value)}
-                        />
-                    </div>
                     <div className="input-container">
                         <label>Descripción:</label>
                         <Input

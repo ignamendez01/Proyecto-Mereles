@@ -10,14 +10,16 @@ const ModificarCatalogo = () => {
     const modelos = state.items.filter((m) => m.isActive);
     const [selectedModel, setSelectedModel] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [originalNumero, setOriginalNumero] = useState(null);
 
     const navigate = useNavigate();
 
     const handleSelectChange = (event) => {
-        const model = modelos.find((m) => m.numero === event.target.value);
-        setSelectedModel(model || null);
-        setOriginalNumero(model?.numero);
+        const model = modelos.find(m => m.id === parseInt(event.target.value));
+        if (model && model.id) {
+            setSelectedModel(model);
+        } else {
+            setSelectedModel(null);
+        }
     };
 
     const handleEditClick = () => {
@@ -27,18 +29,14 @@ const ModificarCatalogo = () => {
     };
 
     const handleSubmitEdit = (modelData) => {
-        const otherModels = modelos.filter((model) => model !== selectedModel);
-        const isDuplicate = otherModels.some((model) => model.numero === modelData.numero);
+        const updatedModelData = { ...modelData, id: selectedModel.id };
 
-        if (isDuplicate) {
-            alert("Error: Ya existe un modelo con ese número de ID.");
-            return;
-        }
+        dispatch({ type: "UPDATE_ITEM", payload: updatedModelData });
 
-        dispatch({ type: "UPDATE_ITEM", payload: modelData, originalNumero: originalNumero });
-        setSelectedModel(modelData);
+        setSelectedModel(updatedModelData);
         setIsModalOpen(false);
     };
+
 
 
     return (
@@ -55,8 +53,8 @@ const ModificarCatalogo = () => {
                     <option value="">Seleccione un modelo</option>
                     {modelos.length > 0 ? (
                         modelos.map((modelo) => (
-                            <option key={modelo.numero} value={modelo.numero}>
-                                {modelo.numero} - {modelo.descripcion}
+                            <option key={modelo.id} value={modelo.id}>
+                                {modelo.id} - {modelo.descripcion}
                             </option>
                         ))
                     ) : (

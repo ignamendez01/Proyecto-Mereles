@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import {useData} from "../../../../context/DataContext";
 import { useNavigate } from "react-router-dom";
 import { PageContainer, ButtonContainer, Button } from '../../../../components/CatalogStyles';
-import TablaCatalogo from "../../../../components/TablaCatalogo";
+import TablaModelo from "../../../../components/TablaModelo";
 import CatalogoModal from "../../../../components/CatalogoModal";
 
 const AltaCatalogo = () => {
@@ -11,18 +11,11 @@ const AltaCatalogo = () => {
     const [modelos, setModelos] = useState([]);
     const [selectedModel, setSelectedModel] = useState(null);
 
-    const { dispatch } = useData();
+    const { state, dispatch } = useData();
     const navigate = useNavigate();
 
 
     const handleCreateModel = (newModel) => {
-        const isDuplicate = modelos.some((model) => model.numero === newModel.numero);
-
-        if (isDuplicate) {
-            alert("Error: Ya existe un modelo con ese número de ID.");
-            return;
-        }
-
         setModelos([...modelos, newModel]);
         setIsModalOpen(false);
     };
@@ -34,14 +27,6 @@ const AltaCatalogo = () => {
     };
 
     const handleSaveEdit = (updatedModel) => {
-        const otherModels = modelos.filter((model) => model !== selectedModel);
-        const isDuplicate = otherModels.some((model) => model.numero === updatedModel.numero);
-
-        if (isDuplicate) {
-            alert("Error: Ya existe un modelo con ese número de ID.");
-            return;
-        }
-
         const updatedModels = modelos.map((model) =>
             model === selectedModel ? updatedModel : model
         );
@@ -57,9 +42,21 @@ const AltaCatalogo = () => {
     };
 
     const handleConfirm = () => {
-        modelos.forEach(model => {
+        let lastId = state.lastId;
+
+        const modelsWithId = modelos.map((model, index) => {
+            const newId = lastId + index + 1;
+            lastId = newId;
+            return {
+                ...model,
+                id: newId,
+            };
+        });
+
+        modelsWithId.forEach(model => {
             dispatch({ type: "ADD_ITEM", payload: {...model, isActive:true }});
         });
+
         setModelos([]);
     };
 
@@ -84,10 +81,8 @@ const AltaCatalogo = () => {
             />
 
             {modelos.length > 0 && (
-                <TablaCatalogo
+                <TablaModelo
                     modelos={modelos}
-                    showEdit={true}
-                    showDelete={true}
                     handleEditModel={handleEditModel}
                     handleDeleteModel={handleDeleteModel}
                 />

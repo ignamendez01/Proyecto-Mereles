@@ -1,14 +1,14 @@
 import React from "react";
 import { useData } from "../../../../context/DataContext";
-import {PageContainer, ButtonContainer, Button} from '../../../../components/CatalogStyles';
-import TablaCatalogo from "../../../../components/TablaCatalogo";
+import {PageContainer, ButtonContainer, Button} from '../../../../components/Styles';
+import TablaCatalogo from "../Common/TablaCatalogo";
 import {useNavigate} from "react-router-dom";
 
 const ResumenCatalogo = () => {
     const { state } = useData();
     const navigate = useNavigate();
 
-    const modelosActivos = state.items.filter((modelo) => modelo.isActive);
+    const modelosActivos = state.modelos.filter((modelo) => modelo.isActive);
 
     return (
         <PageContainer>

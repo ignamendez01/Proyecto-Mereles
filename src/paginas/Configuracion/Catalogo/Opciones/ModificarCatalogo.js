@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useData } from "../../../../context/DataContext";
-import {PageContainer, ButtonContainer, Button} from '../../../../components/CatalogStyles';
-import TablaCatalogo from '../../../../components/TablaCatalogo';
-import CatalogoModal from "../../../../components/CatalogoModal";
+import {PageContainer, ButtonContainer, Button} from '../../../../components/Styles';
+import TablaCatalogo from '../Common/TablaCatalogo';
+import CatalogoModal from "../Common/CatalogoModal";
 
 const ModificarCatalogo = () => {
     const { state, dispatch } = useData();
-    const modelos = state.items.filter((m) => m.isActive);
+    const modelos = state.modelos.filter((m) => m.isActive);
     const [selectedModel, setSelectedModel] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -31,13 +31,11 @@ const ModificarCatalogo = () => {
     const handleSubmitEdit = (modelData) => {
         const updatedModelData = { ...modelData, id: selectedModel.id };
 
-        dispatch({ type: "UPDATE_ITEM", payload: updatedModelData });
+        dispatch({ type: "UPDATE_MODELO", payload: updatedModelData });
 
         setSelectedModel(updatedModelData);
         setIsModalOpen(false);
     };
-
-
 
     return (
         <PageContainer>

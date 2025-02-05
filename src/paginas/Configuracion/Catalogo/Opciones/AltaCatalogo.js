@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import {useData} from "../../../../context/DataContext";
 import { useNavigate } from "react-router-dom";
-import { PageContainer, ButtonContainer, Button } from '../../../../components/CatalogStyles';
-import TablaModelo from "../../../../components/TablaModelo";
-import CatalogoModal from "../../../../components/CatalogoModal";
+import { PageContainer, ButtonContainer, Button } from '../../../../components/Styles';
+import TablaModelo from "../Common/TablaModelo";
+import CatalogoModal from "../Common/CatalogoModal";
 
 const AltaCatalogo = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -11,7 +11,7 @@ const AltaCatalogo = () => {
     const [modelos, setModelos] = useState([]);
     const [selectedModel, setSelectedModel] = useState(null);
 
-    const { state, dispatch } = useData();
+    const { dispatch } = useData();
     const navigate = useNavigate();
 
 
@@ -42,19 +42,14 @@ const AltaCatalogo = () => {
     };
 
     const handleConfirm = () => {
-        let lastId = state.lastId;
-
         const modelsWithId = modelos.map((model, index) => {
-            const newId = lastId + index + 1;
-            lastId = newId;
             return {
                 ...model,
-                id: newId,
             };
         });
 
         modelsWithId.forEach(model => {
-            dispatch({ type: "ADD_ITEM", payload: {...model, isActive:true }});
+            dispatch({ type: "ADD_MODELO", payload: {...model, isActive:true }});
         });
 
         setModelos([]);

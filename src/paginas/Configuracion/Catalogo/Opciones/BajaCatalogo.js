@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useData } from "../../../../context/DataContext";
-import {PageContainer, ButtonContainer, Button} from '../../../../components/CatalogStyles';
-import TablaCatalogo from '../../../../components/TablaCatalogo';
+import {PageContainer, ButtonContainer, Button} from '../../../../components/Styles';
+import TablaCatalogo from '../Common/TablaCatalogo';
 
 const BajaCatalogo = () => {
     const { state, dispatch } = useData();
-    const modelos = state.items.filter((m) => m.isActive);
+    const modelos = state.modelos.filter((m) => m.isActive);
     const [selectedModel, setSelectedModel] = useState(null);
     const navigate = useNavigate();
 
@@ -21,7 +21,7 @@ const BajaCatalogo = () => {
 
     const handleEliminar = () => {
         if (selectedModel) {
-            dispatch({ type: "DESACTIVATE_ITEM", payload: selectedModel.id });
+            dispatch({ type: "DESACTIVAR_MODELO", payload: selectedModel.id });
             setSelectedModel(null);
         }
     };

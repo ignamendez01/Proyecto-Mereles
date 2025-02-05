@@ -3,37 +3,64 @@ import { createContext, useReducer, useContext } from "react";
 const DataContext = createContext();
 
 const initialState = {
-    items: [],
-    lastId: 0,
+    modelos: [],
+    remitos: [],
+    lastModelId: 0,
+    lastGroupId: 0,
+    lastRemitoId: 1,
 };
 
 const dataReducer = (state, action) => {
     switch (action.type) {
-        case "ADD_ITEM":
-            const newId = state.lastId + 1;
+        case "ADD_MODELO":
+            const newModelId = state.lastModelId + 1;
             return {
                 ...state,
-                items: [...state.items, { ...action.payload, id: newId }],
-                lastId: newId,
+                modelos: [...state.modelos, { ...action.payload, id: newModelId }],
+                lastModelId: newModelId,
             };
-        case "REMOVE_ITEM":
+        case "REMOVE_MODELO":
             return {
                 ...state,
-                items: state.items.filter((item) => item.id !== action.payload),
+                modelos: state.modelos.filter((modelo) => modelo.id !== action.payload),
             };
-        case "DESACTIVATE_ITEM":
+        case "DESACTIVAR_MODELO":
             return {
                 ...state,
-                items: state.items.map((item) =>
-                    item.id === action.payload ? { ...item, isActive: false } : item
+                modelos: state.modelos.map((modelo) =>
+                    modelo.id === action.payload ? { ...modelo, isActive: false } : modelo
                 ),
             };
-        case "UPDATE_ITEM":
+        case "UPDATE_MODELO":
             return {
                 ...state,
-                items: state.items.map((item) =>
-                    item.id === action.payload.id ? { ...item, ...action.payload } : item
+                modelos: state.modelos.map((modelo) =>
+                    modelo.id === action.payload.id ? { ...modelo, ...action.payload } : modelo
                 ),
+            };
+        case "ADD_REMITOS":
+            return {
+                ...state,
+                remitos: [...state.remitos, ...action.payload.remitos],
+                lastRemitoId: action.payload.lastRemitoId,
+                lastGroupId: action.payload.lastGroupId,
+            };
+        case "REMOVE_REMITO":
+            return {
+                ...state,
+                remitos: state.remitos.filter((remito) => remito.id !== action.payload),
+            };
+        case "UPDATE_REMITO":
+            return {
+                ...state,
+                remitos: state.remitos.map((remito) =>
+                    remito.id === action.payload.id ? { ...remito, ...action.payload } : remito
+                ),
+            };
+        case "DESACTIVAR_REMITOS":
+            return {
+                ...state,
+                remitos: action.payload,
             };
         default:
             return state;

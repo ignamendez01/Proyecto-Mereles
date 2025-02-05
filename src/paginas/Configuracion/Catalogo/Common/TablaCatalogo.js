@@ -33,7 +33,7 @@ const TablaCatalogo = ({ modelos }) => {
             <tr>
                 <Th>ID</Th>
                 <Th>Descripción</Th>
-                <Th>Peso</Th>
+                <Th>Peso (kg)</Th>
                 <Th>Imagen</Th>
             </tr>
             </thead>
@@ -42,7 +42,7 @@ const TablaCatalogo = ({ modelos }) => {
                 <tr key={modelo.id}>
                     <Td>{modelo.id}</Td>
                     <Td>{modelo.descripcion}</Td>
-                    <Td>{modelo.peso} kg</Td>
+                    <Td>{modelo.peso}</Td>
                     <Td>
                         <Img src={modelo.imagen} alt="Modelo" />
                     </Td>

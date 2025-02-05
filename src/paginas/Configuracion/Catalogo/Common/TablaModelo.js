@@ -45,7 +45,7 @@ const TablaModelo = ({ modelos,
             <thead>
             <tr>
                 <Th>Descripción</Th>
-                <Th>Peso</Th>
+                <Th>Peso (kg)</Th>
                 <Th>Imagen</Th>
                 <Th>Editar</Th>
                 <Th>Eliminar</Th>
@@ -55,7 +55,7 @@ const TablaModelo = ({ modelos,
             {data.map((modelo, index) => (
                 <tr key={index}>
                     <Td>{modelo.descripcion}</Td>
-                    <Td>{modelo.peso} kg</Td>
+                    <Td>{modelo.peso}</Td>
                     <Td>
                         <Img src={modelo.imagen} alt="Modelo" />
                     </Td>

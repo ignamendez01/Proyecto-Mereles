@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { Button } from "./CatalogStyles"
-import notImage from "../resources/No_Image_Available.jpg"
+import { Button } from "../../../../components/Styles"
+import notImage from "../../../../resources/No_Image_Available.jpg"
 
 const ModalOverlay = styled.div`
   position: fixed;
@@ -74,7 +74,9 @@ const CatalogoModal = ({ isOpen, onClose, onSubmit, modelData, title }) => {
     };
 
     const closeModal = () => {
-        resetForm()
+        if(modelData === null){
+            resetForm()
+        }
         onClose()
     };
 

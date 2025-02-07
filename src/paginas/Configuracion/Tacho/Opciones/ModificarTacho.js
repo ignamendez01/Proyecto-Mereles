@@ -5,69 +5,69 @@ import {PageContainer, ButtonContainer, Button} from '../../../../components/Sty
 import Tabla from '../../Common/Tabla';
 import Modal from "../../Common/Modal";
 
-const ModificarCatalogo = () => {
+const ModificarTacho = () => {
     const { state, dispatch } = useData();
-    const modelos = state.modelos.filter((m) => m.isActive);
-    const [selectedModel, setSelectedModel] = useState(null);
+    const tachos = state.tachos.filter((m) => m.isActive);
+    const [selectedTacho, setSelectedTacho] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const navigate = useNavigate();
 
     const handleSelectChange = (event) => {
-        const model = modelos.find(m => m.id === parseInt(event.target.value));
-        if (model && model.id) {
-            setSelectedModel(model);
+        const tacho = tachos.find(m => m.id === parseInt(event.target.value));
+        if (tacho && tacho.id) {
+            setSelectedTacho(tacho);
         } else {
-            setSelectedModel(null);
+            setSelectedTacho(null);
         }
     };
 
     const handleEditClick = () => {
-        if (selectedModel) {
+        if (selectedTacho) {
             setIsModalOpen(true);
         }
     };
 
-    const handleSubmitEdit = (modelData) => {
-        const updatedModelData = { ...modelData, id: selectedModel.id };
+    const handleSubmitEdit = (tachoData) => {
+        const updatedTachoData = { ...tachoData, id: selectedTacho.id };
 
-        dispatch({ type: "UPDATE_MODELO", payload: updatedModelData });
+        dispatch({ type: "UPDATE_TACHO", payload: updatedTachoData });
 
-        setSelectedModel(updatedModelData);
+        setSelectedTacho(updatedTachoData);
         setIsModalOpen(false);
     };
 
     return (
         <PageContainer>
-            <h2>Modificación de Modelos</h2>
+            <h2>Modificación de Tachos</h2>
             <div className="input-container">
-                <label htmlFor="model-select">Seleccionar Modelo:</label>
+                <label htmlFor="tacho-select">Seleccionar Tacho:</label>
                 <select
-                    id="model-select"
+                    id="tacho-select"
                     style={{ fontSize: "16px" }}
                     onChange={handleSelectChange}
-                    value={selectedModel ? selectedModel.numero : ""}
+                    value={selectedTacho ? selectedTacho.numero : ""}
                 >
-                    <option value="">Seleccione un modelo</option>
-                    {modelos.length > 0 ? (
-                        modelos.map((modelo) => (
-                            <option key={modelo.id} value={modelo.id}>
-                                {modelo.id} - {modelo.descripcion}
+                    <option value="">Seleccione un tacho</option>
+                    {tachos.length > 0 ? (
+                        tachos.map((tacho) => (
+                            <option key={tacho.id} value={tacho.id}>
+                                {tacho.id} - {tacho.descripcion}
                             </option>
                         ))
                     ) : (
-                        <option disabled>No hay modelos disponibles</option>
+                        <option disabled>No hay tachos disponibles</option>
                     )}
                 </select>
             </div>
 
-            {selectedModel && (
-                <Tabla object={selectedModel} />
+            {selectedTacho && (
+                <Tabla object={selectedTacho} />
             )}
 
             <ButtonContainer>
                 <Button onClick={() => navigate("/home")}>Volver</Button>
-                {selectedModel && (
+                {selectedTacho && (
                     <Button onClick={handleEditClick}>Modificar</Button>
                 )}
             </ButtonContainer>
@@ -76,11 +76,11 @@ const ModificarCatalogo = () => {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleSubmitEdit}
-                data={selectedModel}
-                title="Editar Modelo"
+                data={selectedTacho}
+                title="Editar Tacho"
             />
         </PageContainer>
     );
 };
 
-export default ModificarCatalogo;
+export default ModificarTacho;

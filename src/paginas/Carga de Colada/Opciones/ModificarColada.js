@@ -1,85 +1,105 @@
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import { useNavigate } from "react-router-dom";
 import {useData} from "../../../context/DataContext";
 import {ButtonContainer, PageContainer, Button} from "../../../components/Styles";
-import TablaRemito from "../Common/TablaRemito";
-import ColadaModal from "../Common/ColadaModal";
+import TablaColada from "../Common/TablaColada";
+import ColadaModal, {Img} from "../Common/ColadaModal";
 
 const ModificarColada = () => {
     const navigate = useNavigate();
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const { state, dispatch } = useData();
-    const remitos = state.remitos;
-    const [selectedRemito, setSelectedRemito] = useState(null);
 
+    const remitos = state.remitos.filter(remito => remito.isActive);
     const [selectedId, setSelectedId] = useState("");
-    const [remitosAgrupados, setRemitosAgrupados] = useState({});
+    const [selectedColada, setSelectedColada] = useState(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedTachoId, setSelectedTachoId] = useState("");
+    const [localColadas, setLocalColadas] = useState([]);
+    const [imagen, setImagen] = useState(null);
 
-    const remitosActivos = remitos.filter(remito => remito.isActive);
-    const remitoIds = [...new Set(remitosActivos.map(remito => remito.groupId))];
-
-
-    const agruparRemitos = (idSeleccionado) => {
-        if (idSeleccionado) {
-            return { [idSeleccionado]: remitos.filter(remito => remito.groupId === parseInt(idSeleccionado)) };
-        }
-        return {};
-    };
+    const remitoIds = remitos.map(remito => remito.id);
+    const tachos = state.tachos.filter(tacho => tacho.isActive);
 
     const handleSelect = (e) => {
-        setSelectedId(e.target.value);
+        const newId = e.target.value;
+        setSelectedId(newId);
+
+        if (!newId) {
+            setSelectedTachoId("");
+            setLocalColadas([]);
+        } else {
+            const remitoSeleccionado = remitos.find(remito => remito.id === parseInt(newId));
+            setLocalColadas([...remitoSeleccionado.coladas]);
+            const tachoSeleccionado = tachos.find(tacho => tacho.id === parseInt(remitoSeleccionado.tachoId));
+            setSelectedTachoId(tachoSeleccionado.id);
+            setImagen(tachoSeleccionado.imagen);
+        }
     };
 
-    const handleEditRemito = (remito) => {
-        console.log("El remito es: ");
-        console.log(remito);
-        setSelectedRemito(remito);
-        console.log("El remito seleccionado quedó: ");
-        console.log(selectedRemito);
+    const handleSaveColada = (updatedColada) => {
+        console.log(updatedColada);
+
+        setLocalColadas(prevColadas => {
+            const newColadas = prevColadas.map(colada =>
+                colada.coladaId === selectedColada.coladaId
+                    ? { ...updatedColada, coladaId: selectedColada.coladaId }
+                    : colada
+            );
+
+            return [...newColadas];
+        });
+
+        setIsEditModalOpen(false);
+    };
+
+
+    const handleDeleteColada = (deletedColada) => {
+        setLocalColadas(prevColadas => {
+            return prevColadas
+                .filter((c) => c.coladaId !== deletedColada.coladaId)
+                .map((c) =>
+                    c.coladaId > deletedColada.coladaId
+                        ? {...c, coladaId: c.coladaId - 1}
+                        : c
+                );
+        });
+    };
+
+    const handleUpdateRemito = () => {
+        const updatedRemito = {
+            ...remitos.find(remito => remito.id === parseInt(selectedId)),
+            tachoId: selectedTachoId,
+            coladas: localColadas,
+        };
+
+        dispatch({ type: "UPDATE_REMITO", payload: updatedRemito });
+        setSelectedId("");
+        setLocalColadas([])
+    };
+
+    function handleSelectTacho(e) {
+        const tachoSeleccionado = tachos.find(tacho => tacho.id === parseInt(e.target.value));
+        setSelectedTachoId(tachoSeleccionado.id);
+        setImagen(tachoSeleccionado.imagen);
+    }
+
+    const handleEditColada = (colada) => {
+        setSelectedColada(colada);
         setIsEditModalOpen(true);
     };
 
-    const handleSaveEdit = (updatedRemito) => {
-        const editedRemito = {
-            ...selectedRemito,  // Mantiene id y groupId originales
-            ...updatedRemito    // Aplica los cambios
-        };
-
-        dispatch({
-            type: "UPDATE_REMITO",
-            payload: editedRemito
-        });
-
-        setRemitosAgrupados(agruparRemitos(selectedId));
-        setIsEditModalOpen(false);
-        setSelectedRemito(null);
-    };
-
-    const handleDeleteRemito = (remito) => {
-        const remitoId = remito.id
-        dispatch({
-            type: "REMOVE_REMITO",
-            payload: remitoId,
-        });
-
-        setRemitosAgrupados(agruparRemitos(selectedId));
-    };
-
-    useEffect(() => {
-        setRemitosAgrupados(agruparRemitos(selectedId));
-    }, [selectedId, state.remitos]);
-
     return (
         <PageContainer>
-            <h2>Modificar Remitos</h2>
+            <h2>Editar Remitos</h2>
+
             <div className="input-container">
-                <label htmlFor="model-select">Seleccionar Remito:</label>
-                <select style={{fontSize: "16px"}} value={selectedId} onChange={handleSelect}>
+                <label htmlFor="remito-select">Seleccionar Remito:</label>
+                <select style={{ fontSize: "16px" }} value={selectedId} onChange={handleSelect}>
                     <option value="">Seleccionar remito</option>
                     {remitoIds.length > 0 ? (
-                        remitoIds.map((groupId) => (
-                            <option key={groupId} value={groupId}>
-                                Remito n°: {groupId}
+                        remitoIds.map((id) => (
+                            <option key={id} value={id}>
+                                Remito n°: {id}
                             </option>
                         ))
                     ) : (
@@ -88,26 +108,50 @@ const ModificarColada = () => {
                 </select>
             </div>
 
-            {remitosAgrupados[selectedId] && remitosAgrupados[selectedId].length > 0 && (
-                <TablaRemito
-                    remitos={remitosAgrupados[selectedId]}
-                    handleEditRemito={handleEditRemito}
-                    handleDeleteRemito={handleDeleteRemito}
+            {selectedId && (
+                <div className="input-container">
+                    <label htmlFor="tacho-select">Seleccionar Tacho:</label>
+                    <div style={{ display: "flex", gap: "2vh", alignItems: "center" }}>
+                        <select
+                            style={{ fontSize: "16px" }}
+                            value={selectedTachoId}
+                            onChange={handleSelectTacho}
+                        >
+                            {tachos.map((tacho) => (
+                                <option key={tacho.id} value={tacho.id}>
+                                    Tacho n°: {tacho.id}
+                                </option>
+                            ))}
+                        </select>
+                        <Img src={imagen} alt="Vista previa"/>
+                    </div>
+                </div>
+            )}
+
+            {localColadas.length > 0 && (
+                <div>
+                    <TablaColada
+                        coladas={localColadas}
+                        handleEditRemito={handleEditColada}
+                        handleDeleteRemito={handleDeleteColada}
+                    />
+                </div>
+            )}
+
+            {selectedColada && isEditModalOpen && (
+                <ColadaModal
+                    isOpen={isEditModalOpen}
+                    onClose={() => setIsEditModalOpen(false)}
+                    onSubmit={handleSaveColada}
+                    coladaData={selectedColada}
+                    title="Editar Colada"
                 />
             )}
 
-            <ColadaModal
-                isOpen={isEditModalOpen}
-                onClose={() => setIsEditModalOpen(false)}
-                onSubmit={handleSaveEdit}
-                remitoData={selectedRemito}
-                title="Editar Remito"
-            />
-
             <ButtonContainer>
                 <Button onClick={() => navigate("/home")}>Volver</Button>
+                <Button onClick={handleUpdateRemito} disabled={!selectedId}>Actualizar Remito</Button>
             </ButtonContainer>
-
         </PageContainer>
     );
 };

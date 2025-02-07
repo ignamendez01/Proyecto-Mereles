@@ -36,7 +36,7 @@ export const Img = styled.img`
     height: 85px;
 `;
 
-const ColadaModal = ({ isOpen, onClose, onSubmit, remitoData, title }) => {
+const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, id, title }) => {
     const [fecha, setFecha] = useState("");
     const [colada, setColada] = useState("");
     const [selectedModel, setSelectedModel] = useState(null);
@@ -45,7 +45,7 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, remitoData, title }) => {
     const [cantidad, setCantidad] = useState("");
     const [peso, setPeso] = useState("");
     const [pesoTotal, setPesoTotal] = useState("");
-    const isActive = true;
+    const [coladaId, setColadaId] = useState(id);
 
     const { state } = useData();
     const modelos = state.modelos.filter((m) => m.isActive);
@@ -54,26 +54,29 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, remitoData, title }) => {
     const imagenPorDefecto = notImage;
 
     useEffect(() => {
-        if (remitoData) {
-            setFecha(remitoData.fecha);
-            setColada(remitoData.colada);
-            setModelId(remitoData.modelId);
-            setPesoTotal(remitoData.peso);
-            setCantidad(remitoData.cantidad);
-            setPeso(remitoData.peso);
-            setImagen(remitoData.imagen || imagenPorDefecto);
-
-            if (remitoData.modelId) {
-                const foundModel = modelos.find(model => model.id === remitoData.modelId);
+        if (coladaData) {
+            setFecha(coladaData.fecha);
+            setColada(coladaData.colada);
+            setModelId(coladaData.modelId);
+            setPesoTotal(coladaData.peso);
+            setCantidad(coladaData.cantidad);
+            setPeso(coladaData.peso);
+            setImagen(coladaData.imagen || imagenPorDefecto);
+            setColadaId(coladaData.coladaId)
+            if (coladaData.modelId) {
+                const foundModel = modelos.find(model => model.id === coladaData.modelId);
                 setSelectedModel(foundModel || null);
             } else {
                 setSelectedModel(null);
             }
-
         } else {
             resetForm();
         }
-    }, [remitoData]);
+    }, [coladaData]);
+
+    useEffect(() => {
+        setColadaId(id);
+    }, [id]);
 
     const handleSelectChange = (event) => {
         const model = modelos.find(m => m.id === parseInt(event.target.value));
@@ -106,7 +109,7 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, remitoData, title }) => {
 
     const handleSubmit = () => {
         if (!fecha || !colada || !cantidad || !selectedModel || imagen === imagenPorDefecto) return;
-        const newModel = { fecha, colada, modelId, imagen, cantidad, peso, pesoTotal, isActive };
+        const newModel = { fecha, colada, modelId, imagen, cantidad, peso, pesoTotal, coladaId };
         onSubmit(newModel);
         resetForm();
         onClose();
@@ -124,7 +127,7 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, remitoData, title }) => {
     };
 
     const closeModal = () => {
-        if(remitoData === null){
+        if(coladaData === null){
             resetForm()
         }
         onClose()

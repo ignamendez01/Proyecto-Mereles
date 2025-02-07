@@ -1,29 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { Edit, Delete } from "@mui/icons-material";
-
-export const Table = styled.table`
-    margin-top: 20px;
-    border-collapse: collapse;
-    width: 80%;
-`;
-
-export const Th = styled.th`
-    border: 1px solid black;
-    padding: 8px;
-    background-color: lightgray;
-`;
-
-export const Td = styled.td`
-    border: 1px solid black;
-    padding: 8px;
-    text-align: center;
-`;
-
-export const Img = styled.img`
-    width: 50px;
-    height: 50px;
-`;
+import { Table, Th, Td, Img } from "../../../components/TableStyles"
 
 export const IconButton = styled.button`
     padding: 10px 20px;
@@ -35,10 +13,10 @@ export const IconButton = styled.button`
     }
 `;
 
-const TablaModelo = ({ modelos,
-                           handleEditModel,
-                           handleDeleteModel }) => {
-    const data = Array.isArray(modelos) ? modelos : [modelos];
+const TablaCrear = ({ object,
+                           handleEdit,
+                           handleDelete }) => {
+    const data = Array.isArray(object) ? object : [object];
 
     return (
         <Table>
@@ -52,20 +30,20 @@ const TablaModelo = ({ modelos,
             </tr>
             </thead>
             <tbody>
-            {data.map((modelo, index) => (
+            {data.map((object, index) => (
                 <tr key={index}>
-                    <Td>{modelo.descripcion}</Td>
-                    <Td>{modelo.peso}</Td>
+                    <Td>{object.descripcion}</Td>
+                    <Td>{object.peso}</Td>
                     <Td>
-                        <Img src={modelo.imagen} alt="Modelo" />
+                        <Img src={object.imagen} alt="Modelo" />
                     </Td>
                     <Td>
-                        <IconButton onClick={() => handleEditModel(modelo)}>
+                        <IconButton onClick={() => handleEdit(object)}>
                             <Edit />
                         </IconButton>
                     </Td>
                     <Td>
-                        <IconButton onClick={() => handleDeleteModel(modelo)}>
+                        <IconButton onClick={() => handleDelete(object)}>
                             <Delete />
                         </IconButton>
                     </Td>
@@ -76,4 +54,4 @@ const TablaModelo = ({ modelos,
     );
 };
 
-export default TablaModelo;
+export default TablaCrear;

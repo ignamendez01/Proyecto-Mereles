@@ -1,31 +1,8 @@
 import React from "react";
-import styled from "styled-components";
+import { Table, Th, Td, Img } from "../../../components/TableStyles"
 
-export const Table = styled.table`
-    margin-top: 20px;
-    border-collapse: collapse;
-    width: 80%;
-`;
-
-export const Th = styled.th`
-    border: 1px solid black;
-    padding: 8px;
-    background-color: lightgray;
-`;
-
-export const Td = styled.td`
-    border: 1px solid black;
-    padding: 8px;
-    text-align: center;
-`;
-
-export const Img = styled.img`
-    width: 50px;
-    height: 50px;
-`;
-
-const TablaCatalogo = ({ modelos }) => {
-    const data = Array.isArray(modelos) ? modelos : [modelos];
+const Tabla = ({ object }) => {
+    const data = Array.isArray(object) ? object : [object];
 
     return (
         <Table>
@@ -53,5 +30,5 @@ const TablaCatalogo = ({ modelos }) => {
     );
 };
 
-export default TablaCatalogo;
+export default Tabla;
 

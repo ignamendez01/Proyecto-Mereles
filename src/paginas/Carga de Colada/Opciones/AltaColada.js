@@ -1,104 +1,171 @@
-import React, { useState } from "react";
+import React, {useState} from "react";
 import {useData} from "../../../context/DataContext";
-import { useNavigate } from "react-router-dom";
-import { PageContainer, ButtonContainer, Button } from '../../../components/Styles';
-import TablaRemito from "../Common/TablaRemito";
-import ColadaModal from "../Common/ColadaModal";
+import {useNavigate} from "react-router-dom";
+import {Button, ButtonContainer, PageContainer} from '../../../components/Styles';
+import TablaColada from "../Common/TablaColada";
+import ColadaModal, {Img} from "../Common/ColadaModal";
+import notImage from "../../../resources/No_Image_Available.jpg";
 
 const AltaColada = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [remitos, setRemitos] = useState([]);
-    const [selectedRemito, setSelectedRemito] = useState(null);
+
+    const [coladas, setColadas] = useState([]);
+    const [selectedColada, setSelectedColada] = useState(null);
+    const [coladaId, setColadaId] = useState(1);
+
+    const [selectedTacho, setSelectedTacho] = useState(null);
+    const [tachoId, setTachoId] = useState("");
 
     const { state, dispatch } = useData();
+    const tachos = state.tachos.filter((m) => m.isActive);
     const navigate = useNavigate();
 
-    const handleCreateRemito = (newRemito) => {
-        setRemitos([...remitos, newRemito]);
+    const imagenPorDefecto = notImage;
+    const [imagen, setImagen] = useState(imagenPorDefecto);
+
+    const handleCreateColada = (newColada) => {
+        setColadas([...coladas, newColada]);
+        const newColadaId = coladaId + 1;
+        setColadaId(newColadaId);
         setIsModalOpen(false);
     };
 
-    const handleEditRemito = (remito) => {
-        setSelectedRemito(remito);
+    const handleEditColada = (colada) => {
+        setSelectedColada(colada);
         setIsEditModalOpen(true);
     };
 
-    const handleSaveEdit = (updatedRemito) => {
-        const updatedRemitos = remitos.map((remito) =>
-            remito === selectedRemito ? updatedRemito : remito
+    const handleSaveEdit = (updatedColada) => {
+        const updatedColadas = coladas.map((colada) =>
+            colada === selectedColada ? updatedColada : colada
         );
 
-        setRemitos(updatedRemitos);
+        setColadas(updatedColadas);
         setIsEditModalOpen(false);
-        setSelectedRemito(null);
+        setSelectedColada(null);
     };
 
-    const handleDeleteRemito = (remito) => {
-        const updatedRemitos = remitos.filter((m) => m !== remito);
-        setRemitos(updatedRemitos);
-    };
-
-    const handleConfirm = () => {
-        const newGroupId = state.lastGroupId + 1;
-        let currentRemitoId = state.lastRemitoId;
-
-        const RemitosWithId = remitos.map((remito) => {
-            const updatedRemito = {
-                ...remito,
-                id: currentRemitoId,
-                groupId: newGroupId,
-            };
-            currentRemitoId += 1;
-            return updatedRemito;
+    const handleDeleteColada = (colada) => {
+        setColadas((prevColadas) => {
+            return prevColadas
+                .filter((c) => c.coladaId !== colada.coladaId)
+                .map((c) =>
+                    c.coladaId > colada.coladaId
+                        ? {...c, coladaId: c.coladaId - 1}
+                        : c
+                );
         });
+
+        setColadaId((prevId) => prevId - 1);
+    };
+
+    const handleSelectChange = (event) => {
+        const tacho = tachos.find(t => t.id === parseInt(event.target.value));
+        if (tacho && tacho.id) {
+            setSelectedTacho(tacho);
+            setImagen(tacho.imagen);
+            setTachoId(tacho.id);
+        } else {
+            setSelectedTacho(null);
+            setImagen(imagenPorDefecto);
+            setTachoId(null);
+        }
+    };
+
+    const handleGenerate = () => {
+        const pesoTotal = coladas.reduce((total, colada) => total + colada.pesoTotal, 0);
 
         dispatch({
             type: "ADD_REMITOS",
-            payload: { remitos: RemitosWithId, lastRemitoId: currentRemitoId, lastGroupId: newGroupId }
+            payload: { coladas, pesoTotal, tachoId },
         });
 
-        setRemitos([]);
+        setColadaId(1)
+        setColadas([]);
     };
 
+    const handleDeploy = () => {
+        const pesoTotal = coladas.reduce((total, colada) => total + colada.pesoTotal, 0);
 
+        dispatch({
+            type: "ADD_PESAJE",
+            payload: { coladas, pesoTotal, tachoId },
+        });
+
+        setColadaId(1)
+        setColadas([]);
+    };
 
     return (
         <PageContainer>
-            <Button onClick={() => setIsModalOpen(true)}>Agregar Remito</Button>
+            <h2>Alta de Remitos</h2>
+            <Button onClick={() => setIsModalOpen(true)}>Agregar Colada</Button>
 
             <ColadaModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                onSubmit={handleCreateRemito}
+                onSubmit={handleCreateColada}
                 remitoData={null}
-                title="Crear Remito"
+                id={coladaId}
+                title="Crear Colada"
             />
 
             <ColadaModal
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
                 onSubmit={handleSaveEdit}
-                remitoData={selectedRemito}
-                title="Editar Remito"
+                coladaData={selectedColada}
+                title="Editar Colada"
             />
 
-            {remitos.length > 0 && (
-                <TablaRemito
-                    remitos={remitos}
-                    handleEditRemito={handleEditRemito}
-                    handleDeleteRemito={handleDeleteRemito}
-                />
-            )}
+            {coladas.length > 0 && (
+                <div>
+                    <div className="input-container">
+                        <label>Tacho:</label>
+                        <div style={{display: "flex", gap: "2vh", alignItems: "center"}}>
+                            <select style={{fontSize: "16px"}} value={selectedTacho?.id || ""}
+                                    onChange={handleSelectChange}>
+                                <option value="">Selecciona un tacho</option>
+                                {tachos.length > 0 ? (
+                                    tachos.map((tacho) => (
+                                        <option key={tacho.id} value={tacho.id}>
+                                            {tacho.id} - {tacho.descripcion}
+                                        </option>
+                                    ))
+                                ) : (
+                                    <option disabled>No hay tachos disponibles</option>
+                                )}
+                            </select>
+                            <Img src={imagen} alt="Vista previa"/>
+                        </div>
+                    </div>
+
+                    <TablaColada
+                        coladas={coladas}
+                        handleEditRemito={handleEditColada}
+                        handleDeleteRemito={handleDeleteColada}
+                    />
+                </div>
+            )
+            }
 
             <ButtonContainer>
                 <Button onClick={() => navigate("/home")}>Volver</Button>
-                {remitos.length > 0 && (
-                    <Button onClick={handleConfirm}>Confirmar</Button>
-                )}
+                <Button
+                    onClick={handleGenerate}
+                    disabled={coladas.length === 0 || !tachoId}>
+                    Generar
+                </Button>
+                <Button
+                    onClick={handleDeploy}
+                    disabled={coladas.length === 0 || !tachoId}>
+                    Enviar a producción
+                </Button>
             </ButtonContainer>
         </PageContainer>
-    );
+    )
+        ;
 };
 
 export default AltaColada;

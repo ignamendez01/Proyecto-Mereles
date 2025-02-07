@@ -4,20 +4,20 @@ import {PageContainer, ButtonContainer, Button} from '../../../../components/Sty
 import Tabla from "../../Common/Tabla";
 import {useNavigate} from "react-router-dom";
 
-const ResumenCatalogo = () => {
+const ResumenTacho = () => {
     const { state } = useData();
     const navigate = useNavigate();
 
-    const modelosActivos = state.modelos.filter((modelo) => modelo.isActive);
+    const tachosActivos = state.tachos.filter((tacho) => tacho.isActive);
 
     return (
         <PageContainer>
-            <h2>Resumen del Catálogo</h2>
+            <h2>Resumen de Tachos</h2>
 
-            {modelosActivos.length > 0 ? (
-                <Tabla object={modelosActivos} />
+            {tachosActivos.length > 0 ? (
+                <Tabla object={tachosActivos} />
             ) : (
-                <p>No hay modelos activos para mostrar.</p>
+                <p>No hay tachos activos para mostrar.</p>
             )}
             <ButtonContainer>
                 <Button onClick={() => navigate("/home")}>Volver</Button>
@@ -27,4 +27,4 @@ const ResumenCatalogo = () => {
     );
 };
 
-export default ResumenCatalogo;
+export default ResumenTacho;

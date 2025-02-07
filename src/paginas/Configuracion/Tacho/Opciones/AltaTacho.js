@@ -5,88 +5,88 @@ import { PageContainer, ButtonContainer, Button } from '../../../../components/S
 import TablaCrear from "../../Common/TablaCrear";
 import Modal from "../../Common/Modal";
 
-const AltaCatalogo = () => {
+const AltaTacho = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [modelos, setModelos] = useState([]);
-    const [selectedModel, setSelectedModel] = useState(null);
+    const [tachos, setTachos] = useState([]);
+    const [selectedTacho, setSelectedTacho] = useState(null);
 
     const { dispatch } = useData();
     const navigate = useNavigate();
 
 
-    const handleCreateModel = (newModel) => {
-        setModelos([...modelos, newModel]);
+    const handleCreateTacho = (newTacho) => {
+        setTachos([...tachos, newTacho]);
         setIsModalOpen(false);
     };
 
 
-    const handleEditModel = (model) => {
-        setSelectedModel(model);
+    const handleEditTacho = (tacho) => {
+        setSelectedTacho(tacho);
         setIsEditModalOpen(true);
     };
 
-    const handleSaveEdit = (updatedModel) => {
-        const updatedModels = modelos.map((model) =>
-            model === selectedModel ? updatedModel : model
+    const handleSaveEdit = (updatedTacho) => {
+        const updatedTachos = tachos.map((tacho) =>
+            tacho === selectedTacho ? updatedTacho : tacho
         );
 
-        setModelos(updatedModels);
+        setTachos(updatedTachos);
         setIsEditModalOpen(false);
-        setSelectedModel(null);
+        setSelectedTacho(null);
     };
 
-    const handleDeleteModel = (model) => {
-        const updatedModels = modelos.filter((m) => m !== model);
-        setModelos(updatedModels);
+    const handleDeleteTacho = (tacho) => {
+        const updatedTachos = tachos.filter((m) => m !== tacho);
+        setTachos(updatedTachos);
     };
 
     const handleConfirm = () => {
-        const modelsWithId = modelos.map((model, index) => {
+        const tachosWithId = tachos.map((tacho, index) => {
             return {
-                ...model,
+                ...tacho,
             };
         });
 
-        modelsWithId.forEach(model => {
-            dispatch({ type: "ADD_MODELO", payload: {...model, isActive:true }});
+        tachosWithId.forEach(tacho => {
+            dispatch({ type: "ADD_TACHO", payload: {...tacho, isActive:true }});
         });
 
-        setModelos([]);
+        setTachos([]);
     };
 
     return (
         <PageContainer>
-            <h2>Alta de Modelos</h2>
-            <Button onClick={() => setIsModalOpen(true)}>Agregar Modelo</Button>
+            <h2>Alta de Tachos</h2>
+            <Button onClick={() => setIsModalOpen(true)}>Agregar Tacho</Button>
 
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                onSubmit={handleCreateModel}
+                onSubmit={handleCreateTacho}
                 data={null}
-                title="Crear Modelo"
+                title="Crear Tacho"
             />
 
             <Modal
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
                 onSubmit={handleSaveEdit}
-                data={selectedModel}
-                title="Editar Modelo"
+                data={selectedTacho}
+                title="Editar Tacho"
             />
 
-            {modelos.length > 0 && (
+            {tachos.length > 0 && (
                 <TablaCrear
-                    object={modelos}
-                    handleEdit={handleEditModel}
-                    handleDelete={handleDeleteModel}
+                    object={tachos}
+                    handleEdit={handleEditTacho}
+                    handleDelete={handleDeleteTacho}
                 />
             )}
 
             <ButtonContainer>
                 <Button onClick={() => navigate("/home")}>Volver</Button>
-                {modelos.length > 0 && (
+                {tachos.length > 0 && (
                     <Button onClick={handleConfirm}>Confirmar</Button>
                 )}
             </ButtonContainer>
@@ -94,4 +94,4 @@ const AltaCatalogo = () => {
     );
 };
 
-export default AltaCatalogo;
+export default AltaTacho;

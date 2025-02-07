@@ -1,6 +1,7 @@
 import Navbar from "../../components/NavBar";
-import Catalogo from "./Catalogo/Catalogo"
 import {useState} from "react";
+import Catalogo from "./Catalogo/Catalogo"
+import Tacho from "./Tacho/Tacho";
 
 const Configuracion = () => {
     const [selectedOption, setSelectedOption] = useState(null);
@@ -9,6 +10,8 @@ const Configuracion = () => {
         switch (selectedOption) {
             case "option1":
                 return <Catalogo />;
+            case "option2":
+                return <Tacho />;
             default:
                 return null;
         }

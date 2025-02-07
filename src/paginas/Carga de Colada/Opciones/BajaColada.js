@@ -1,59 +1,52 @@
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {useData} from "../../../context/DataContext";
 import {ButtonContainer, PageContainer, Button} from "../../../components/Styles";
-import TablaColada from "../Common/TablaColada";
+import TablaRemito from "../Common/TablaRemito";
 
 const BajaColada = () => {
     const navigate = useNavigate();
     const { state, dispatch } = useData();
-    const remitos = state.remitos;
 
+    const remitos = state.remitos.filter(remito => remito.isActive);
     const [selectedId, setSelectedId] = useState("");
-    const [remitosAgrupados, setRemitosAgrupados] = useState({});
+    const [remitosFiltrados, setRemitosFiltrados] = useState([]);
 
-    const remitosActivos = remitos.filter(remito => remito.isActive);
-    const remitoIds = [...new Set(remitosActivos.map(remito => remito.groupId))];
-
-
-    const agruparRemitos = (idSeleccionado) => {
-        if (idSeleccionado) {
-            return { [idSeleccionado]: remitos.filter(remito => remito.groupId === parseInt(idSeleccionado)) };
-        }
-        return {};
-    };
+    const remitoIds = remitos.map(remito => remito.id);
 
     const handleSelect = (e) => {
-        setSelectedId(e.target.value);
+        const newId = e.target.value;
+        setSelectedId(newId);
+
+        if (!newId) {
+            setRemitosFiltrados([]);
+        } else {
+            setRemitosFiltrados(remitos.filter(remito => remito.id === parseInt(newId)));
+        }
     };
 
     const handleEliminar = () => {
         if (!selectedId) return;
 
-        const remitosActualizados = state.remitos.map(remito =>
-            remito.groupId === parseInt(selectedId) ? { ...remito, isActive: false } : remito
-        );
-
-        dispatch({ type: "DESACTIVAR_REMITOS", payload: remitosActualizados });
+        const remitoAEliminar = remitos.find(remito => remito.id === parseInt(selectedId));
+        dispatch({ type: "DESACTIVAR_REMITO", payload: remitoAEliminar });
 
         setSelectedId("");
+        setRemitosFiltrados([]);
     };
 
-    useEffect(() => {
-        setRemitosAgrupados(agruparRemitos(selectedId));
-    }, [selectedId]);
 
     return (
         <PageContainer>
             <h2>Baja de Remitos</h2>
             <div className="input-container">
                 <label htmlFor="model-select">Seleccionar Remito:</label>
-                <select style={{fontSize: "16px"}} value={selectedId} onChange={handleSelect}>
+                <select style={{ fontSize: "16px" }} value={selectedId} onChange={handleSelect}>
                     <option value="">Seleccionar remito</option>
                     {remitoIds.length > 0 ? (
-                        remitoIds.map((groupId) => (
-                            <option key={groupId} value={groupId}>
-                                Remito n°: {groupId}
+                        remitoIds.map((id) => (
+                            <option key={id} value={id}>
+                                Remito n°: {id}
                             </option>
                         ))
                     ) : (
@@ -62,15 +55,18 @@ const BajaColada = () => {
                 </select>
             </div>
 
-            {remitosAgrupados[selectedId] && (
-                <TablaColada remitos={remitosAgrupados[selectedId]}/>
-            )}
+            {remitosFiltrados.map(remito => (
+                <div key={remito.id}>
+                    <TablaRemito remito={remito} />
+                </div>
+            ))}
 
             <ButtonContainer>
                 <Button onClick={() => navigate("/home")}>Volver</Button>
-                <Button onClick={handleEliminar}>Eliminar</Button>
+                <Button onClick={handleEliminar} disabled={!selectedId}>
+                    Eliminar
+                </Button>
             </ButtonContainer>
-
         </PageContainer>
     );
 };

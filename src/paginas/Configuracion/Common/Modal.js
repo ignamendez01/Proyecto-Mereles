@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { Button } from "../../../../components/Styles"
-import notImage from "../../../../resources/No_Image_Available.jpg"
+import { Button } from "../../../components/Styles"
+import notImage from "../../../resources/No_Image_Available.jpg"
 
 const ModalOverlay = styled.div`
   position: fixed;
@@ -35,7 +35,7 @@ export const Img = styled.img`
     height: 85px;
 `;
 
-const CatalogoModal = ({ isOpen, onClose, onSubmit, modelData, title }) => {
+const Modal = ({ isOpen, onClose, onSubmit, data, title }) => {
     const [descripcion, setDescripcion] = useState("");
     const [peso, setPeso] = useState("");
     const [imagen, setImagen] = useState(null);
@@ -43,14 +43,14 @@ const CatalogoModal = ({ isOpen, onClose, onSubmit, modelData, title }) => {
     const imagenPorDefecto = notImage;
 
     useEffect(() => {
-        if (modelData) {
-            setDescripcion(modelData.descripcion);
-            setPeso(modelData.peso);
-            setImagen(modelData.imagen || imagenPorDefecto);
+        if (data) {
+            setDescripcion(data.descripcion);
+            setPeso(data.peso);
+            setImagen(data.imagen || imagenPorDefecto);
         } else {
             resetForm();
         }
-    }, [modelData]);
+    }, [data]);
 
     const handleImageChange = (e) => {
         if (e.target.files.length > 0) {
@@ -74,7 +74,7 @@ const CatalogoModal = ({ isOpen, onClose, onSubmit, modelData, title }) => {
     };
 
     const closeModal = () => {
-        if(modelData === null){
+        if(data === null){
             resetForm()
         }
         onClose()
@@ -122,6 +122,6 @@ const CatalogoModal = ({ isOpen, onClose, onSubmit, modelData, title }) => {
     );
 };
 
-export default CatalogoModal;
+export default Modal;
 
 

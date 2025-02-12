@@ -52,7 +52,6 @@ const ModificarColada = () => {
         setIsEditModalOpen(false);
     };
 
-
     const handleDeleteColada = (deletedColada) => {
         setLocalColadas(prevColadas => {
             return prevColadas

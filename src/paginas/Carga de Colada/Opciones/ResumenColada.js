@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { useData } from "../../../context/DataContext";
 import { Button, ButtonContainer, PageContainer } from "../../../components/Styles";
 import { useNavigate } from "react-router-dom";
 import TablaRemito from "../Common/TablaRemito";
+import TablaEnviarRemito from "../Common/TablaEnviarRemito";
 
 const ResumenColada = () => {
-    const { state } = useData();
+    const { state, dispatch } = useData();
     const navigate = useNavigate();
 
     const remitos = state.remitos.filter(remito => remito.isActive);
@@ -13,6 +14,8 @@ const ResumenColada = () => {
     const [fechaDesde, setFechaDesde] = useState("");
     const [fechaHasta, setFechaHasta] = useState("");
     const [remitosFiltrados, setRemitosFiltrados] = useState(remitos);
+
+    const [modoFiltrado, setModoFiltrado] = useState(false);
 
     const remitoIds = remitos.map(remito => remito.id);
 
@@ -27,6 +30,7 @@ const ResumenColada = () => {
                     return fechaColada >= new Date(fechaDesde) && fechaColada <= new Date(fechaHasta);
                 })
             }));
+            setModoFiltrado(true);
         }
 
         setRemitosFiltrados(nuevosRemitos);
@@ -37,13 +41,31 @@ const ResumenColada = () => {
         setSelectedId(newId);
         setFechaDesde("");
         setFechaHasta("");
+        setModoFiltrado(false);
 
         if (!newId) {
-            setRemitosFiltrados(remitos); // Mostrar todos los remitos si no hay selección
+            setRemitosFiltrados(remitos);
         } else {
             setRemitosFiltrados(remitos.filter(remito => remito.id === parseInt(newId)));
         }
     };
+
+    const handleEnviarRemito = (remito) => {
+        const pesoTotal = remito.pesoTotal;
+        const coladas = remito.coladas
+        const tachoId = remito.tachoId
+
+        dispatch({
+            type: "ADD_PESAJE",
+            payload: { coladas, pesoTotal, tachoId },
+        });
+
+        dispatch({ type: "ENVIAR_REMITO", payload: remito });
+    };
+
+    useEffect(() => {
+        setRemitosFiltrados(remitos);
+    }, [state.remitos]);
 
     return (
         <PageContainer>
@@ -81,13 +103,21 @@ const ResumenColada = () => {
                         style={{ marginRight: "20px" }}
                         onChange={(e) => setFechaHasta(e.target.value)}
                     />
-                    <Button onClick={handleBuscar}>Buscar</Button>
+                    <Button
+                        onClick={handleBuscar}
+                        disabled={fechaDesde === "" || fechaHasta === ""}>
+                        Buscar
+                    </Button>
                 </div>
             )}
 
             {remitosFiltrados.map(remito => (
                 <div key={remito.id}>
-                    <TablaRemito remito={remito} />
+                    {modoFiltrado ? (
+                        <TablaRemito remito={remito} />
+                    ) : (
+                        <TablaEnviarRemito remito={remito} handleEnviarRemito={handleEnviarRemito}/>
+                    )}
                 </div>
             ))}
 

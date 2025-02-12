@@ -14,6 +14,10 @@ export const IconButton = styled.button`
     &:hover {
         background-color: dimgray;
     }
+    &:disabled {
+        background-color: lightgray;
+        cursor: not-allowed;
+    }
 `;
 
 export const TdFooter = styled(Td)`
@@ -24,7 +28,7 @@ export const TdFooterTotal = styled(Td)`
     border: 1px solid black;
 `;
 
-const TablaRemitosAgrupados = ({ pesajes, setSelectedGroup }) => (
+const TablaRemitosAgrupados = ({ pesajes, selectedGroup, setSelectedGroup }) => (
     <Table>
         <thead>
         <tr>
@@ -39,7 +43,10 @@ const TablaRemitosAgrupados = ({ pesajes, setSelectedGroup }) => (
                 <Td>{remito.id}</Td>
                 <Td>{remito.pesoTotal}</Td>
                 <Td>
-                    <IconButton onClick={() => setSelectedGroup(remito.id)}>
+                    <IconButton
+                        onClick={() => setSelectedGroup(remito.id)}
+                        disabled={selectedGroup === remito.id}
+                    >
                         <CheckBoxOutlinedIcon />
                     </IconButton>
                 </Td>
@@ -127,7 +134,11 @@ const Ingreso = () => {
         <PageContainer>
             <h2>Ingreso para control de pesaje</h2>
             {pesajes.length > 0 ? (
-                <TablaRemitosAgrupados pesajes={pesajes} setSelectedGroup={setSelectedGroup} />
+                <TablaRemitosAgrupados
+                    pesajes={pesajes}
+                    selectedGroup={selectedGroup}
+                    setSelectedGroup={setSelectedGroup}
+                />
             ) : (
                 <p>No hay remitos activos.</p>
             )}

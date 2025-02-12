@@ -7,29 +7,17 @@ import {TdFooter, TdFooterTotal} from "./Ingreso";
 
 const TablaDetallesRemitos = ({ remito }) => {
     const totalPeso = remito.pesoTotal;
-    const { state, dispatch } = useData();  // Obtener dispatch desde el contexto
+    const { state, dispatch } = useData();
 
     const tachos = state.tachos.filter(tacho => tacho.isActive);
     const selectedTacho = tachos.find(tacho => tacho.id === remito.tachoId);
     const pesoTacho = selectedTacho.peso;
 
     const handleEgresar = () => {
-
         dispatch({
             type: "DEPLOY_REMITO",
             payload: remito.id,
         });
-
-        const coladas = remito.coladas;
-        const pesoTotal = remito.pesoTotal;
-        const tachoId = remito.tachoId;
-
-        dispatch({
-            type: "ADD_REMITOS",
-            payload: { coladas, pesoTotal, tachoId },
-        });
-
-        console.log(state.pesajes)
     };
 
     return (

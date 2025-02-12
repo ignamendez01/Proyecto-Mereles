@@ -78,24 +78,29 @@ const AltaColada = () => {
 
         dispatch({
             type: "ADD_REMITOS",
-            payload: { coladas, pesoTotal, tachoId },
+            payload: { coladas, pesoTotal, tachoId, enviado: false },
         });
 
-        setColadaId(1)
+        setColadaId(1);
         setColadas([]);
     };
 
     const handleDeploy = () => {
         const pesoTotal = coladas.reduce((total, colada) => total + colada.pesoTotal, 0);
-
         dispatch({
             type: "ADD_PESAJE",
             payload: { coladas, pesoTotal, tachoId },
         });
 
-        setColadaId(1)
+        dispatch({
+            type: "ADD_REMITOS",
+            payload: { coladas, pesoTotal, tachoId, enviado: true },
+        });
+
+        setColadaId(1);
         setColadas([]);
     };
+
 
     return (
         <PageContainer>

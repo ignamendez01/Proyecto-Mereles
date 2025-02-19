@@ -50,7 +50,7 @@ const TablaColada = ({ coladas,
             {data.map((colada, index) => (
                 <tr key={index}>
                     <Td>{colada.coladaId}</Td>
-                    <Td>{colada.modelId}</Td>
+                    <Td>{colada.modeloId}</Td>
                     <Td>
                         <Img src={colada.imagen} alt="Modelo"/>
                     </Td>

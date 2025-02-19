@@ -1,24 +1,39 @@
 import React, {useEffect, useState} from "react";
-import {useData} from "../../../context/DataContext";
+//import {useData} from "../../../context/DataContext";
 import {Img, Table, Td, Th} from "../../../components/TableStyles";
 import {useNavigate} from "react-router-dom";
 import {Button, ButtonContainer, PageContainer} from "../../../components/Styles";
 import {TdFooter, TdFooterTotal} from "./Ingreso";
+import axios from "axios";
 
-const TablaDetallesRemitos = ({ remito }) => {
+const TablaDetallesRemitos = ({ remito, tachos, setRemitosFiltrados }) => {
     const totalPeso = remito.pesoTotal;
-    const { state, dispatch } = useData();
+    //{state,dispatch} = useData();
 
-    const tachos = state.tachos.filter(tacho => tacho.isActive);
     const selectedTacho = tachos.find(tacho => tacho.id === remito.tachoId);
-    const pesoTacho = selectedTacho.peso;
+    const pesoTacho = selectedTacho?.peso || 0;
 
     const handleEgresar = () => {
+        axios.patch(`${API_URL}/${remito.id}/egresar`)
+            .then(() => {
+                // Volver a obtener la lista actualizada de remitos
+                axios.get(`${API_URL}/pesados-no-egresados`)
+                    .then(response => {
+                        setRemitosFiltrados(response.data);
+                    })
+                    .catch(error => console.error("Error al obtener remitos:", error));
+            })
+            .catch(error => console.error("Error al egresar remito:", error));
+    };
+
+    /*const handleEgresar = () => {
         dispatch({
             type: "DEPLOY_REMITO",
             payload: remito.id,
         });
     };
+
+     */
 
     return (
         <Table>
@@ -42,11 +57,11 @@ const TablaDetallesRemitos = ({ remito }) => {
                     {index === 0 ? (
                         <Td rowSpan={remito.coladas.length}>{remito.id}</Td>
                     ) : null}
-                    <Td>{colada.modelId}</Td>
+                    <Td>{colada.modeloId}</Td>
                     <Td><Img src={colada.imagen} alt="Imagen del remito"/></Td>
                     <Td>{colada.cantidad}</Td>
                     <Td>{colada.peso}</Td>
-                    <Td>{totalPeso}</Td>
+                    <Td>{colada.pesoTotal}</Td>
                     {index === 0 ? (
                         <Td rowSpan={remito.coladas.length}>{pesoTacho}</Td>
                     ) : null}
@@ -80,14 +95,50 @@ const TablaDetallesRemitos = ({ remito }) => {
     );
 };
 
+const API_URL = "https://backend-mereles.onrender.com/pesajes";
+
 const Egreso = () => {
-    const { state } = useData();
+    //const { state } = useData();
     const navigate = useNavigate();
     const [remitosFiltrados, setRemitosFiltrados] = useState([]);
+    //const tachos = state.tachos.filter(tacho => tacho.isActive);
+    const [tachos, setTachos] = useState([]);
 
     useEffect(() => {
+        const fetchRemitosPesadosNoEgresados = () => {
+            axios.get(`${API_URL}/pesados-no-egresados`)
+                .then(response => {
+                    setRemitosFiltrados(response.data);
+                })
+                .catch(error => console.error("Error al obtener remitos:", error));
+        };
+
+        fetchRemitosPesadosNoEgresados();
+        const interval = setInterval(fetchRemitosPesadosNoEgresados, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        const fetchTachosActivos = () => {
+            axios.get("https://backend-mereles.onrender.com/tachos/activos")
+                .then(response => {
+                    setTachos(response.data);
+                })
+                .catch(error => console.error("Error al obtener tachos:", error));
+        };
+
+        fetchTachosActivos();
+        const interval = setInterval(fetchTachosActivos, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    /*useEffect(() => {
         setRemitosFiltrados(state.pesajes.filter(remito => remito.isPesado && !remito.isDeployed));
     }, [state.pesajes]);
+
+     */
 
     return (
         <PageContainer>
@@ -95,7 +146,11 @@ const Egreso = () => {
             {remitosFiltrados.length > 0 ? (
                 remitosFiltrados.map(remito => (
                     <div key={remito.id}>
-                        <TablaDetallesRemitos remito={remito} />
+                        <TablaDetallesRemitos
+                            remito={remito}
+                            tachos={tachos}
+                            setRemitosFiltrados={setRemitosFiltrados}
+                        />
                     </div>
                 ))
             ) : (

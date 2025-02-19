@@ -21,7 +21,8 @@ const Tabla = ({ object }) => {
                     <Td>{modelo.descripcion}</Td>
                     <Td>{modelo.peso}</Td>
                     <Td>
-                        <Img src={modelo.imagen} alt="Modelo" />
+                        {/*<Img src={modelo.imagen} alt="Modelo"/>*/}
+                        <Img src={modelo.imagen instanceof File ? URL.createObjectURL(modelo.imagen) : modelo.imagen} alt="Vista previa" />
                     </Td>
                 </tr>
             ))}

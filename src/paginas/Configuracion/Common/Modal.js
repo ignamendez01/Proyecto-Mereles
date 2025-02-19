@@ -54,8 +54,13 @@ const Modal = ({ isOpen, onClose, onSubmit, data, title }) => {
 
     const handleImageChange = (e) => {
         if (e.target.files.length > 0) {
-            const nuevaImagen = URL.createObjectURL(e.target.files[0]);
+            const file = e.target.files[0];
+            console.log(file);
+            setImagen(file);
+            /*const nuevaImagen = URL.createObjectURL(e.target.files[0]);
             setImagen(nuevaImagen);
+
+             */
         }
     };
 
@@ -112,7 +117,8 @@ const Modal = ({ isOpen, onClose, onSubmit, data, title }) => {
                         />
                     </div>
 
-                    <Img src={imagen} alt="Vista previa"/>
+                    {/*<Img src={imagen} alt="Vista previa"/>*/}
+                    <Img src={imagen instanceof File ? URL.createObjectURL(imagen) : imagen} alt="Vista previa" />
 
                     <Button onClick={handleSubmit} disabled={isDisabled}>Aceptar</Button>
                     <Button onClick={closeModal}>Cerrar</Button>

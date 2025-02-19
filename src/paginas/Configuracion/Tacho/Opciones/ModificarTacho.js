@@ -1,17 +1,44 @@
-import React, { useState } from "react";
+import React, {useEffect, useRef, useState} from "react";
 import { useNavigate } from "react-router-dom";
-import { useData } from "../../../../context/DataContext";
+//import { useData } from "../../../../context/DataContext";
 import {PageContainer, ButtonContainer, Button} from '../../../../components/Styles';
 import Tabla from '../../Common/Tabla';
 import Modal from "../../Common/Modal";
+import axios from "axios";
+
+const API_URL = "https://backend-mereles.onrender.com/tachos";
 
 const ModificarTacho = () => {
-    const { state, dispatch } = useData();
-    const tachos = state.tachos.filter((m) => m.isActive);
+    // const { state, dispatch } = useData();
+    // const tachos = state.tachos.filter((m) => m.isActive);
+    const [tachos, setTachos] = useState([]);
     const [selectedTacho, setSelectedTacho] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const navigate = useNavigate();
+
+    const prevModelosRef = useRef([]);
+
+    useEffect(() => {
+        const fetchTachosActivos = () => {
+            axios.get(`${API_URL}/activos`)
+                .then(response => {
+                    const nuevosTachos = response.data;
+
+                    if (JSON.stringify(prevModelosRef.current) !== JSON.stringify(nuevosTachos)) {
+                        setTachos(response.data);
+                        prevModelosRef.current = nuevosTachos; // Actualizar referencia
+                    }
+                })
+                .catch(error => console.error("Error al obtener tachos:", error));
+        };
+
+        fetchTachosActivos();
+        const interval = setInterval(fetchTachosActivos, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     const handleSelectChange = (event) => {
         const tacho = tachos.find(m => m.id === parseInt(event.target.value));
@@ -30,12 +57,43 @@ const ModificarTacho = () => {
 
     const handleSubmitEdit = (tachoData) => {
         const updatedTachoData = { ...tachoData, id: selectedTacho.id };
+        setIsModalOpen(false);
+        setIsLoading(true);
+
+        try {
+            const formData = new FormData();
+            formData.append("descripcion", updatedTachoData.descripcion);
+            formData.append("peso", updatedTachoData.peso);
+
+            if (updatedTachoData.imagen instanceof File) {
+                formData.append("imagen", updatedTachoData.imagen);
+            }
+
+            axios.put(`${API_URL}/${selectedTacho.id}`, formData)
+                .then((response) => {
+                    setSelectedTacho(updatedTachoData);
+                })
+                .catch((error) => {
+                    console.error("Error al actualizar el tacho:", error);
+                });
+
+        } catch (error) {
+            console.error("Error al actualizar el tacho:", error);
+        } finally {
+            setIsLoading(false);  // 👈 Desbloqueamos la UI cuando termina
+        }
+    };
+
+    /*const handleSubmitEdit = (tachoData) => {
+        const updatedTachoData = { ...tachoData, id: selectedTacho.id };
 
         dispatch({ type: "UPDATE_TACHO", payload: updatedTachoData });
 
         setSelectedTacho(updatedTachoData);
         setIsModalOpen(false);
     };
+
+     */
 
     return (
         <PageContainer>
@@ -46,7 +104,7 @@ const ModificarTacho = () => {
                     id="tacho-select"
                     style={{ fontSize: "16px" }}
                     onChange={handleSelectChange}
-                    value={selectedTacho ? selectedTacho.numero : ""}
+                    value={selectedTacho ? selectedTacho.id : ""}
                 >
                     <option value="">Seleccione un tacho</option>
                     {tachos.length > 0 ? (
@@ -66,9 +124,9 @@ const ModificarTacho = () => {
             )}
 
             <ButtonContainer>
-                <Button onClick={() => navigate("/home")}>Volver</Button>
+                <Button onClick={() => navigate("/home")} disabled={isLoading}>Volver</Button>
                 {selectedTacho && (
-                    <Button onClick={handleEditClick}>Modificar</Button>
+                    <Button onClick={handleEditClick} disabled={isLoading}>Modificar</Button>
                 )}
             </ButtonContainer>
 
@@ -79,6 +137,7 @@ const ModificarTacho = () => {
                 data={selectedTacho}
                 title="Editar Tacho"
             />
+            {isLoading && <p>Cargando...</p>}
         </PageContainer>
     );
 };

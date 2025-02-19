@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect, useRef} from "react";
 import styled from "styled-components";
 import { Button } from "../../../components/Styles"
 import notImage from "../../../resources/No_Image_Available.jpg"
-import { useData } from "../../../context/DataContext";
+//import { useData } from "../../../context/DataContext";
+import axios from "axios";
 
 const ModalOverlay = styled.div`
   position: fixed;
@@ -36,35 +37,61 @@ export const Img = styled.img`
     height: 85px;
 `;
 
-const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, id, title }) => {
+const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, localId, title }) => {
     const [fecha, setFecha] = useState("");
     const [colada, setColada] = useState("");
     const [selectedModel, setSelectedModel] = useState(null);
-    const [modelId, setModelId] = useState("");
+    const [modeloId, setModeloId] = useState("");
     const [imagen, setImagen] = useState(null);
     const [cantidad, setCantidad] = useState("");
     const [peso, setPeso] = useState("");
     const [pesoTotal, setPesoTotal] = useState("");
-    const [coladaId, setColadaId] = useState(id);
+    const [coladaId, setColadaId] = useState(localId);
+    const [id, setId] = useState(null);
 
-    const { state } = useData();
-    const modelos = state.modelos.filter((m) => m.isActive);
-
+    //const { state } = useData();
+    //const modelos = state.modelos.filter((m) => m.isActive);
+    const [modelos, setModelos] = useState([]);
 
     const imagenPorDefecto = notImage;
+
+    const prevModelosRef = useRef([]); // Guarda la versión anterior de modelos
+
+    useEffect(() => {
+        const fetchModelosActivos = () => {
+            axios.get("https://backend-mereles.onrender.com/modelos/activos")
+                .then(response => {
+                    const nuevosModelos = response.data;
+
+                    // Comparar modelos previos con nuevos antes de actualizar
+                    if (JSON.stringify(prevModelosRef.current) !== JSON.stringify(nuevosModelos)) {
+                        setModelos(nuevosModelos);
+                        prevModelosRef.current = nuevosModelos; // Actualizar referencia
+                    }
+                })
+                .catch(error => console.error("Error al obtener modelos:", error));
+        };
+
+        fetchModelosActivos();
+        const interval = setInterval(fetchModelosActivos, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         if (coladaData) {
             setFecha(coladaData.fecha);
             setColada(coladaData.colada);
-            setModelId(coladaData.modelId);
-            setPesoTotal(coladaData.peso);
+            setModeloId(coladaData.modeloId);
+            setPesoTotal(coladaData.pesoTotal);
             setCantidad(coladaData.cantidad);
             setPeso(coladaData.peso);
             setImagen(coladaData.imagen || imagenPorDefecto);
-            setColadaId(coladaData.coladaId)
-            if (coladaData.modelId) {
-                const foundModel = modelos.find(model => model.id === coladaData.modelId);
+            setColadaId(coladaData.coladaId);
+            setId(coladaData.id);
+
+            if (coladaData.modeloId && modelos.length > 0) {
+                const foundModel = modelos.find(model => model.id === coladaData.modeloId);
                 setSelectedModel(foundModel || null);
             } else {
                 setSelectedModel(null);
@@ -72,18 +99,20 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, id, title }) => {
         } else {
             resetForm();
         }
-    }, [coladaData]);
+    }, [coladaData, modelos]);
+
+
 
     useEffect(() => {
-        setColadaId(id);
-    }, [id]);
+        setColadaId(localId);
+    }, [localId]);
 
     const handleSelectChange = (event) => {
         const model = modelos.find(m => m.id === parseInt(event.target.value));
         if (model && model.id) {
             setSelectedModel(model);
             setImagen(model.imagen);
-            setModelId(model.id);
+            setModeloId(model.id);
             setPeso(model.peso);
             if (cantidad) {
                 setPesoTotal(model.peso * cantidad);
@@ -91,7 +120,7 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, id, title }) => {
         } else {
             setSelectedModel(null);
             setImagen(imagenPorDefecto);
-            setModelId(null);
+            setModeloId(null);
             setPeso(null);
             setPesoTotal(null);
         }
@@ -109,7 +138,12 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, id, title }) => {
 
     const handleSubmit = () => {
         if (!fecha || !colada || !cantidad || !selectedModel || imagen === imagenPorDefecto) return;
-        const newModel = { fecha, colada, modelId, imagen, cantidad, peso, pesoTotal, coladaId };
+        let newModel;
+        if (id){
+            newModel = { fecha, colada, modeloId, imagen, cantidad, peso, pesoTotal, coladaId, id };
+        }else{
+            newModel = { fecha, colada, modeloId, imagen, cantidad, peso, pesoTotal, coladaId };
+        }
         onSubmit(newModel);
         resetForm();
         onClose();
@@ -118,7 +152,7 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, id, title }) => {
     const resetForm = () => {
         setFecha("");
         setColada("");
-        setModelId("");
+        setModeloId("");
         setCantidad("");
         setSelectedModel("");
         setPesoTotal("");

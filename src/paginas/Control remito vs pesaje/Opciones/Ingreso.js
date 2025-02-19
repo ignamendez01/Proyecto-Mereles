@@ -1,10 +1,11 @@
-import React, {useState} from "react";
-import { useData } from "../../../context/DataContext";
+import React, {useEffect, useState} from "react";
+//import { useData } from "../../../context/DataContext";
 import { Table, Th, Td, Img } from "../../../components/TableStyles";
 import {Button, ButtonContainer, PageContainer} from "../../../components/Styles";
 import {useNavigate} from "react-router-dom";
 import styled from "styled-components";
 import CheckBoxOutlinedIcon from '@mui/icons-material/CheckBoxOutlined';
+import axios from "axios";
 
 export const IconButton = styled.button`
     padding: 10px 20px;
@@ -28,7 +29,7 @@ export const TdFooterTotal = styled(Td)`
     border: 1px solid black;
 `;
 
-const TablaRemitosAgrupados = ({ pesajes, selectedGroup, setSelectedGroup }) => (
+const TablaRemitosAgrupados = ({ pesajes, selectedRemito, setSelectedRemito }) => (
     <Table>
         <thead>
         <tr>
@@ -44,8 +45,8 @@ const TablaRemitosAgrupados = ({ pesajes, selectedGroup, setSelectedGroup }) => 
                 <Td>{remito.pesoTotal}</Td>
                 <Td>
                     <IconButton
-                        onClick={() => setSelectedGroup(remito.id)}
-                        disabled={selectedGroup === remito.id}
+                        onClick={() => setSelectedRemito(remito)}
+                        disabled={selectedRemito?.id === remito.id}
                     >
                         <CheckBoxOutlinedIcon />
                     </IconButton>
@@ -56,11 +57,11 @@ const TablaRemitosAgrupados = ({ pesajes, selectedGroup, setSelectedGroup }) => 
     </Table>
 );
 
-const TablaDetallesRemitos = ({ remito }) => {
+const TablaDetallesRemitos = ({ remito, tachos }) => {
+    console.log(remito)
     const totalPeso = remito.pesoTotal;
-    const { state } = useData();
+    //const { state } = useData();
 
-    const tachos = state.tachos.filter(tacho => tacho.isActive);
     const selectedTacho = tachos.find(tacho => tacho.id === remito.tachoId);
     const pesoTacho = selectedTacho.peso;
 
@@ -84,11 +85,11 @@ const TablaDetallesRemitos = ({ remito }) => {
                     {index === 0 ? (
                         <Td rowSpan={remito.coladas.length}>{remito.id}</Td>
                     ) : null}
-                    <Td>{colada.modelId}</Td>
+                    <Td>{colada.modeloId}</Td>
                     <Td><Img src={colada.imagen} alt="Imagen de colada" /></Td>
                     <Td>{colada.cantidad}</Td>
                     <Td>{colada.peso}</Td>
-                    <Td>{totalPeso}</Td>
+                    <Td>{colada.pesoTotal}</Td>
                     {index === 0 ? (
                         <Td rowSpan={remito.coladas.length}>{pesoTacho}</Td>
                     ) : null}
@@ -116,19 +117,64 @@ const TablaDetallesRemitos = ({ remito }) => {
     );
 };
 
+const API_URL = "https://backend-mereles.onrender.com/pesajes";
+
 const Ingreso = () => {
-    const { state, dispatch } = useData();
+    //const { state, dispatch } = useData();
     const navigate = useNavigate();
-    const [selectedGroup, setSelectedGroup] = useState(null);
-    const pesajes = state.pesajes.filter(remito => !remito.isPesado);
+    const [selectedRemito, setSelectedRemito] = useState(null);
+    const [pesajes, setPesajes] = useState([]);
+    const [tachos, setTachos] = useState([]);
+    //const pesajes = state.pesajes.filter(remito => !remito.isPesado);
+    //const tachos = state.tachos.filter(tacho => tacho.isActive);
+
+    useEffect(() => {
+        const fetchTachosActivos = () => {
+            axios.get("https://backend-mereles.onrender.com/tachos/activos")
+                .then(response => {
+                    setTachos(response.data);
+                })
+                .catch(error => console.error("Error al obtener tachos:", error));
+        };
+
+        fetchTachosActivos();
+        const interval = setInterval(fetchTachosActivos, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        const fetchRemitosNoPesados = () => {
+            axios.get(`${API_URL}/no-pesados`)
+                .then(response => {
+                    setPesajes(response.data);
+                })
+                .catch(error => console.error("Error al obtener remitos:", error));
+        };
+
+        fetchRemitosNoPesados();
+        const interval = setInterval(fetchRemitosNoPesados, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     function handlePesar() {
-        if (!selectedGroup || !state?.pesajes) return;
-
-        dispatch({ type: "PESAR_REMITOS", payload: selectedGroup });
-
-        setSelectedGroup(null);
+        axios.patch(`${API_URL}/${selectedRemito.id}/pesar`)
+            .then(() => {
+                setSelectedRemito(null);
+            })
+            .catch(error => console.error("Error al eliminar remito:", error));
     }
+
+    /*function handlePesar() {
+        if (!selectedRemito || pesajes.empty()) return;
+
+        dispatch({ type: "PESAR_REMITOS", payload: selectedRemito });
+
+        setSelectedRemito(null);
+    }
+
+     */
 
     return (
         <PageContainer>
@@ -136,24 +182,25 @@ const Ingreso = () => {
             {pesajes.length > 0 ? (
                 <TablaRemitosAgrupados
                     pesajes={pesajes}
-                    selectedGroup={selectedGroup}
-                    setSelectedGroup={setSelectedGroup}
+                    selectedRemito={selectedRemito}
+                    setSelectedRemito={setSelectedRemito}
                 />
             ) : (
                 <p>No hay remitos activos.</p>
             )}
 
-            {selectedGroup && (
-                <div>
+            {selectedRemito && (
+                <div key={selectedRemito.id}>
                     <h2>Grilla de remitos para pesaje</h2>
-                    <TablaDetallesRemitos remito={pesajes.find(remito => remito.id === selectedGroup) || []} />
+                    <TablaDetallesRemitos remito={selectedRemito} tachos={tachos} />
                 </div>
             )}
+
             <ButtonContainer>
                 <Button onClick={() => navigate("/home")}>Volver</Button>
                 <Button
                     onClick={handlePesar}
-                    disabled={!selectedGroup}>
+                    disabled={!selectedRemito}>
                     Pesar
                 </Button>
             </ButtonContainer>

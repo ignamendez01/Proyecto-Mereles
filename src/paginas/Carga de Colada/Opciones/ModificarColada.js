@@ -1,15 +1,20 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
-import {useData} from "../../../context/DataContext";
+//import {useData} from "../../../context/DataContext";
 import {ButtonContainer, PageContainer, Button} from "../../../components/Styles";
 import TablaColada from "../Common/TablaColada";
 import ColadaModal, {Img} from "../Common/ColadaModal";
+import axios from "axios";
+
+//const API_URL = "http://localhost:8080/remitos";
+const API_URL = "https://backend-mereles.onrender.com/remitos";
 
 const ModificarColada = () => {
     const navigate = useNavigate();
-    const { state, dispatch } = useData();
+    //const { state, dispatch } = useData();
 
-    const remitos = state.remitos.filter(remito => remito.isActive);
+    //const remitos = state.remitos.filter(remito => remito.isActive);
+    const [remitos, setRemitos] = useState([]);
     const [selectedId, setSelectedId] = useState("");
     const [selectedColada, setSelectedColada] = useState(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -18,7 +23,38 @@ const ModificarColada = () => {
     const [imagen, setImagen] = useState(null);
 
     const remitoIds = remitos.map(remito => remito.id);
-    const tachos = state.tachos.filter(tacho => tacho.isActive);
+    const [tachos, setTachos] = useState([]);
+    //const tachos = state.tachos.filter(tacho => tacho.isActive);
+
+    useEffect(() => {
+        const fetchRemitosActivos = () => {
+            axios.get(`${API_URL}/activos`)
+                .then(response => {
+                    setRemitos(response.data);
+                })
+                .catch(error => console.error("Error al obtener remitos:", error));
+        };
+
+        fetchRemitosActivos();
+        const interval = setInterval(fetchRemitosActivos, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        const fetchTachosActivos = () => {
+            axios.get("https://backend-mereles.onrender.com/tachos/activos")
+                .then(response => {
+                    setTachos(response.data);
+                })
+                .catch(error => console.error("Error al obtener tachos:", error));
+        };
+
+        fetchTachosActivos();
+        const interval = setInterval(fetchTachosActivos, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     const handleSelect = (e) => {
         const newId = e.target.value;
@@ -29,7 +65,11 @@ const ModificarColada = () => {
             setLocalColadas([]);
         } else {
             const remitoSeleccionado = remitos.find(remito => remito.id === parseInt(newId));
-            setLocalColadas([...remitoSeleccionado.coladas]);
+            const coladasConId = remitoSeleccionado.coladas.map((colada, index) => ({
+                ...colada,
+                coladaId: index+1,
+            }));
+            setLocalColadas(coladasConId);
             const tachoSeleccionado = tachos.find(tacho => tacho.id === parseInt(remitoSeleccionado.tachoId));
             setSelectedTachoId(tachoSeleccionado.id);
             setImagen(tachoSeleccionado.imagen);
@@ -37,7 +77,6 @@ const ModificarColada = () => {
     };
 
     const handleSaveColada = (updatedColada) => {
-        console.log(updatedColada);
 
         setLocalColadas(prevColadas => {
             const newColadas = prevColadas.map(colada =>
@@ -65,6 +104,30 @@ const ModificarColada = () => {
     };
 
     const handleUpdateRemito = () => {
+        if (!selectedId) {
+            console.error("No se ha seleccionado un remito para actualizar.");
+            return;
+        }
+
+        const pesoTotal = localColadas.reduce((total, colada) => total + colada.pesoTotal, 0);
+
+        const remitoUpdateDTO = {
+            coladas: localColadas,
+            pesoTotal: pesoTotal,
+            tachoId: selectedTachoId
+        };
+
+        axios.put(`${API_URL}/${selectedId}/actualizar`, remitoUpdateDTO)
+            .then(() => {
+                setSelectedId("");
+                setLocalColadas([]);
+                setSelectedTachoId("");
+            })
+            .catch(error => console.error("Error al editar remito:", error));
+    };
+
+
+    /*const handleUpdateRemito = () => {
         const updatedRemito = {
             ...remitos.find(remito => remito.id === parseInt(selectedId)),
             tachoId: selectedTachoId,
@@ -75,6 +138,8 @@ const ModificarColada = () => {
         setSelectedId("");
         setLocalColadas([])
     };
+
+     */
 
     function handleSelectTacho(e) {
         const tachoSeleccionado = tachos.find(tacho => tacho.id === parseInt(e.target.value));

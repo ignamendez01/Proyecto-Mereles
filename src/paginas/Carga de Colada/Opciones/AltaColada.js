@@ -1,10 +1,13 @@
-import React, {useState} from "react";
-import {useData} from "../../../context/DataContext";
+import React, {useEffect, useState} from "react";
+//import {useData} from "../../../context/DataContext";
 import {useNavigate} from "react-router-dom";
 import {Button, ButtonContainer, PageContainer} from '../../../components/Styles';
 import TablaColada from "../Common/TablaColada";
 import ColadaModal, {Img} from "../Common/ColadaModal";
 import notImage from "../../../resources/No_Image_Available.jpg";
+import axios from "axios";
+
+const API_URL = "https://backend-mereles.onrender.com/remitos";
 
 const AltaColada = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,12 +20,28 @@ const AltaColada = () => {
     const [selectedTacho, setSelectedTacho] = useState(null);
     const [tachoId, setTachoId] = useState("");
 
-    const { state, dispatch } = useData();
-    const tachos = state.tachos.filter((m) => m.isActive);
+    //const { state, dispatch } = useData();
+    //const tachos = state.tachos.filter((m) => m.isActive);
+    const [tachos, setTachos] = useState([]);
     const navigate = useNavigate();
 
     const imagenPorDefecto = notImage;
     const [imagen, setImagen] = useState(imagenPorDefecto);
+
+    useEffect(() => {
+        const fetchTachosActivos = () => {
+            axios.get("https://backend-mereles.onrender.com/tachos/activos")
+                .then(response => {
+                    setTachos(response.data);
+                })
+                .catch(error => console.error("Error al obtener tachos:", error));
+        };
+
+        fetchTachosActivos();
+        const interval = setInterval(fetchTachosActivos, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     const handleCreateColada = (newColada) => {
         setColadas([...coladas, newColada]);
@@ -73,7 +92,7 @@ const AltaColada = () => {
         }
     };
 
-    const handleGenerate = () => {
+    /*const handleGenerate = () => {
         const pesoTotal = coladas.reduce((total, colada) => total + colada.pesoTotal, 0);
 
         dispatch({
@@ -85,7 +104,48 @@ const AltaColada = () => {
         setColadas([]);
     };
 
+     */
+
+    const handleGenerate = async () => {
+        const pesoTotal = coladas.reduce((total, colada) => total + colada.pesoTotal, 0);
+        const nuevoRemito = { coladas, pesoTotal, tachoId};
+
+        axios.post(`${API_URL}/generar`, nuevoRemito)
+            .then(() => {
+                setColadaId(1);
+                setColadas([]);
+                setTachoId("")
+                setSelectedTacho(null)
+                setImagen(imagenPorDefecto)
+            })
+            .catch(error => console.error("Error al crear remito:", error));
+    };
+
     const handleDeploy = () => {
+        const pesoTotal = coladas.reduce((total, colada) => total + colada.pesoTotal, 0);
+        const nuevoRemito = { coladas, pesoTotal, tachoId };
+        const remitoAPesar = { coladas, pesoTotal, tachoId };
+
+        axios.post(`${API_URL}/enviar`, nuevoRemito)
+            .then(() => {
+                axios.post("https://backend-mereles.onrender.com/pesajes/crear", remitoAPesar )
+                    .then(() => {
+                        setColadaId(1);
+                        setColadas([]);
+                        setTachoId("")
+                        setSelectedTacho(null)
+                        setImagen(imagenPorDefecto)
+                    })
+                    .catch(error => {
+                        console.error("Error al enviar remito a pesar:", error);
+                    });
+            })
+            .catch(error => {
+                console.error("Error al enviar remito:", error);
+            });
+    };
+
+    /*const handleDeploy = () => {
         const pesoTotal = coladas.reduce((total, colada) => total + colada.pesoTotal, 0);
         dispatch({
             type: "ADD_PESAJE",
@@ -101,6 +161,7 @@ const AltaColada = () => {
         setColadas([]);
     };
 
+     */
 
     return (
         <PageContainer>
@@ -112,7 +173,7 @@ const AltaColada = () => {
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleCreateColada}
                 remitoData={null}
-                id={coladaId}
+                localId={coladaId}
                 title="Crear Colada"
             />
 

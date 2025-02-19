@@ -1,30 +1,64 @@
-import React, { useState } from "react";
+import React, {useEffect, useRef, useState} from "react";
 import { useNavigate } from "react-router-dom";
-import { useData } from "../../../../context/DataContext";
+//import { useData } from "../../../../context/DataContext";
 import {PageContainer, ButtonContainer, Button} from '../../../../components/Styles';
 import Tabla from '../../Common/Tabla';
+import axios from "axios";
+
+const API_URL = "https://backend-mereles.onrender.com/tachos";
 
 const BajaTacho = () => {
-    const { state, dispatch } = useData();
-    const tachos = state.tachos.filter((m) => m.isActive);
-    const [selectedModel, setSelectedModel] = useState(null);
+    const [tachos, setTachos] = useState([]);
+    const [selectedTacho, setSelectedTacho] = useState(null);
+    //const { state, dispatch } = useData();
+    //const tachos = state.tachos.filter((m) => m.isActive);
     const navigate = useNavigate();
 
+    const prevModelosRef = useRef([]);
+
+    useEffect(() => {
+        const fetchTachosActivos = () => {
+            axios.get(`${API_URL}/activos`)
+                .then(response => {
+                    const nuevosTachos = response.data;
+
+                    if (JSON.stringify(prevModelosRef.current) !== JSON.stringify(nuevosTachos)) {
+                        setTachos(response.data);
+                        prevModelosRef.current = nuevosTachos; // Actualizar referencia
+                    }
+                })
+                .catch(error => console.error("Error al obtener tachos:", error));
+        };
+
+        fetchTachosActivos();
+        const interval = setInterval(fetchTachosActivos, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
     const handleSelectChange = (event) => {
-        const model = tachos.find(m => m.id === parseInt(event.target.value));
-        if (model && model.id) {
-            setSelectedModel(model);
-        } else {
-            setSelectedModel(null);
-        }
+        const tacho = tachos.find(t => t.id === parseInt(event.target.value));
+        setSelectedTacho(tacho || null);
     };
 
     const handleEliminar = () => {
+        if (!selectedTacho) return;
+
+        axios.patch(`${API_URL}/${selectedTacho.id}/desactivar`)
+            .then(() => {
+                setSelectedTacho(null);
+            })
+            .catch(error => console.error("Error al eliminar tacho:", error));
+    };
+
+    /*const handleEliminar = () => {
         if (selectedModel) {
             dispatch({ type: "DESACTIVAR_TACHO", payload: selectedModel.id });
             setSelectedModel(null);
         }
     };
+
+     */
 
     return (
         <PageContainer>
@@ -45,13 +79,13 @@ const BajaTacho = () => {
                 </select>
             </div>
 
-            {selectedModel && (
-                <Tabla object={selectedModel} />
+            {selectedTacho && (
+                <Tabla object={selectedTacho} />
             )}
 
             <ButtonContainer>
                 <Button onClick={() => navigate("/home")}>Volver</Button>
-                {selectedModel && (
+                {selectedTacho && (
                     <Button onClick={handleEliminar}>Eliminar</Button>
                 )}
             </ButtonContainer>
@@ -60,4 +94,3 @@ const BajaTacho = () => {
 };
 
 export default BajaTacho;
-

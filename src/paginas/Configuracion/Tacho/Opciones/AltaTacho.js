@@ -1,25 +1,27 @@
 import React, { useState } from "react";
-import {useData} from "../../../../context/DataContext";
+//import {useData} from "../../../../context/DataContext";
 import { useNavigate } from "react-router-dom";
 import { PageContainer, ButtonContainer, Button } from '../../../../components/Styles';
 import TablaCrear from "../../Common/TablaCrear";
 import Modal from "../../Common/Modal";
+import axios from "axios";
+
+const API_URL = "https://backend-mereles.onrender.com/tachos";
 
 const AltaTacho = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [tachos, setTachos] = useState([]);
     const [selectedTacho, setSelectedTacho] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const { dispatch } = useData();
+    //const { dispatch } = useData();
     const navigate = useNavigate();
-
 
     const handleCreateTacho = (newTacho) => {
         setTachos([...tachos, newTacho]);
         setIsModalOpen(false);
     };
-
 
     const handleEditTacho = (tacho) => {
         setSelectedTacho(tacho);
@@ -41,7 +43,7 @@ const AltaTacho = () => {
         setTachos(updatedTachos);
     };
 
-    const handleConfirm = () => {
+    /*const handleConfirm = () => {
         const tachosWithId = tachos.map((tacho, index) => {
             return {
                 ...tacho,
@@ -55,10 +57,40 @@ const AltaTacho = () => {
         setTachos([]);
     };
 
+     */
+
+    const handleConfirm = async () => {
+        setIsLoading(true);
+        try {
+            for (const tacho of tachos) {
+                const formData = new FormData();
+                formData.append("descripcion", tacho.descripcion);
+                formData.append("peso", tacho.peso);
+
+                if (tacho.imagen instanceof File) {
+                    formData.append("imagen", tacho.imagen);
+                }
+
+                await axios.post(API_URL, formData, {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                });
+            }
+            setTachos([]);
+        } catch (error) {
+            console.error("Error al subir los tachos:", error);
+        } finally {
+            setIsLoading(false);  // 👈 Desbloqueamos la UI cuando termina
+        }
+    };
+
     return (
         <PageContainer>
             <h2>Alta de Tachos</h2>
-            <Button onClick={() => setIsModalOpen(true)}>Agregar Tacho</Button>
+            <Button onClick={() => setIsModalOpen(true)} disabled={isLoading}>
+                Agregar Tacho
+            </Button>
 
             <Modal
                 isOpen={isModalOpen}
@@ -85,11 +117,17 @@ const AltaTacho = () => {
             )}
 
             <ButtonContainer>
-                <Button onClick={() => navigate("/home")}>Volver</Button>
+                <Button onClick={() => navigate("/home")} disabled={isLoading}>
+                    Volver
+                </Button>
                 {tachos.length > 0 && (
-                    <Button onClick={handleConfirm}>Confirmar</Button>
+                    <Button onClick={handleConfirm} disabled={isLoading}>
+                        {isLoading ? "Subiendo..." : "Confirmar"}
+                    </Button>
                 )}
             </ButtonContainer>
+
+            {isLoading && <p>Cargando...</p>}
         </PageContainer>
     );
 };

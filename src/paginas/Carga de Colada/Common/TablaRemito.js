@@ -35,7 +35,7 @@ const TablaRemito = ({ remito }) => {
             {remito.coladas.map((colada) => (
                 <tr key={colada.colada}>
                     <Td>{remito.id}</Td>
-                    <Td>{colada.modelId}</Td>
+                    <Td>{colada.modeloId}</Td>
                     <Td>
                         <Img src={colada.imagen} alt="Modelo" />
                     </Td>

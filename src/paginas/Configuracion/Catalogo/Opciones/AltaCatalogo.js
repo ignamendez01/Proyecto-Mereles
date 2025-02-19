@@ -1,25 +1,27 @@
 import React, { useState } from "react";
-import {useData} from "../../../../context/DataContext";
+//import {useData} from "../../../../context/DataContext";
 import { useNavigate } from "react-router-dom";
 import { PageContainer, ButtonContainer, Button } from '../../../../components/Styles';
 import TablaCrear from "../../Common/TablaCrear";
 import Modal from "../../Common/Modal";
+import axios from "axios";
+
+const API_URL = "https://backend-mereles.onrender.com/modelos";
 
 const AltaCatalogo = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [modelos, setModelos] = useState([]);
     const [selectedModel, setSelectedModel] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const { dispatch } = useData();
+    //const { dispatch } = useData();
     const navigate = useNavigate();
-
 
     const handleCreateModel = (newModel) => {
         setModelos([...modelos, newModel]);
         setIsModalOpen(false);
     };
-
 
     const handleEditModel = (model) => {
         setSelectedModel(model);
@@ -41,7 +43,7 @@ const AltaCatalogo = () => {
         setModelos(updatedModels);
     };
 
-    const handleConfirm = () => {
+    /*const handleConfirm = () => {
         const modelsWithId = modelos.map((model, index) => {
             return {
                 ...model,
@@ -55,10 +57,40 @@ const AltaCatalogo = () => {
         setModelos([]);
     };
 
+     */
+
+    const handleConfirm = async () => {
+        setIsLoading(true);  // 👈 Bloqueamos la UI
+        try {
+            for (const modelo of modelos) {
+                const formData = new FormData();
+                formData.append("descripcion", modelo.descripcion);
+                formData.append("peso", modelo.peso);
+
+                if (modelo.imagen instanceof File) {
+                    formData.append("imagen", modelo.imagen);
+                }
+
+                await axios.post(API_URL, formData, {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                });
+            }
+            setModelos([]);
+        } catch (error) {
+            console.error("Error al subir los modelos:", error);
+        } finally {
+            setIsLoading(false);  // 👈 Desbloqueamos la UI cuando termina
+        }
+    };
+
     return (
         <PageContainer>
             <h2>Alta de Modelos</h2>
-            <Button onClick={() => setIsModalOpen(true)}>Agregar Modelo</Button>
+            <Button onClick={() => setIsModalOpen(true)} disabled={isLoading}>
+                Agregar Modelo
+            </Button>
 
             <Modal
                 isOpen={isModalOpen}
@@ -85,11 +117,17 @@ const AltaCatalogo = () => {
             )}
 
             <ButtonContainer>
-                <Button onClick={() => navigate("/home")}>Volver</Button>
+                <Button onClick={() => navigate("/home")} disabled={isLoading}>
+                    Volver
+                </Button>
                 {modelos.length > 0 && (
-                    <Button onClick={handleConfirm}>Confirmar</Button>
+                    <Button onClick={handleConfirm} disabled={isLoading}>
+                        {isLoading ? "Subiendo..." : "Confirmar"}
+                    </Button>
                 )}
             </ButtonContainer>
+
+            {isLoading && <p>Cargando...</p>}
         </PageContainer>
     );
 };

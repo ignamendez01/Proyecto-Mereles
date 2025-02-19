@@ -1,15 +1,20 @@
 import React, {useEffect, useState} from "react";
-import { useData } from "../../../context/DataContext";
+//import { useData } from "../../../context/DataContext";
 import { Button, ButtonContainer, PageContainer } from "../../../components/Styles";
 import { useNavigate } from "react-router-dom";
 import TablaRemito from "../Common/TablaRemito";
 import TablaEnviarRemito from "../Common/TablaEnviarRemito";
+import axios from "axios";
+
+const API_URL = "https://backend-mereles.onrender.com/remitos";
 
 const ResumenColada = () => {
-    const { state, dispatch } = useData();
     const navigate = useNavigate();
 
-    const remitos = state.remitos.filter(remito => remito.isActive);
+    //const { state, dispatch } = useData();
+    //const remitos = state.remitos.filter(remito => remito.isActive);
+    const [remitos, setRemitos] = useState([]);
+
     const [selectedId, setSelectedId] = useState("");
     const [fechaDesde, setFechaDesde] = useState("");
     const [fechaHasta, setFechaHasta] = useState("");
@@ -18,6 +23,21 @@ const ResumenColada = () => {
     const [modoFiltrado, setModoFiltrado] = useState(false);
 
     const remitoIds = remitos.map(remito => remito.id);
+
+    useEffect(() => {
+        const fetchRemitosActivos = () => {
+            axios.get(`${API_URL}/activos`)
+                .then(response => {
+                    setRemitos(response.data);
+                })
+                .catch(error => console.error("Error al obtener remitos:", error));
+        };
+
+        fetchRemitosActivos();
+        const interval = setInterval(fetchRemitosActivos, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     const handleBuscar = () => {
         let nuevosRemitos = remitos.filter(remito => remito.id === parseInt(selectedId));
@@ -51,6 +71,17 @@ const ResumenColada = () => {
     };
 
     const handleEnviarRemito = (remito) => {
+        const remitoId = remito.id;
+
+        axios.patch(`${API_URL}/${remitoId}/enviar`)
+            .then(() => {
+                axios.post(`https://backend-mereles.onrender.com/pesajes/crearDesdeRemito/${remitoId}`)
+                    .catch(error => console.error("Error al crear pesaje desde remito:", error));
+            })
+            .catch(error => console.error("Error al enviar remito:", error));
+    };
+
+    /*const handleEnviarRemito = (remito) => {
         const pesoTotal = remito.pesoTotal;
         const coladas = remito.coladas
         const tachoId = remito.tachoId
@@ -63,9 +94,11 @@ const ResumenColada = () => {
         dispatch({ type: "ENVIAR_REMITO", payload: remito });
     };
 
+     */
+
     useEffect(() => {
         setRemitosFiltrados(remitos);
-    }, [state.remitos]);
+    }, [remitos]);
 
     return (
         <PageContainer>

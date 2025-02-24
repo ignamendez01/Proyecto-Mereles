@@ -108,7 +108,7 @@ const TablaDetallesRemitos = ({ remito, tachos }) => {
             <tr>
                 <TdFooter colSpan={4}></TdFooter>
                 <TdFooter>Total Pesaje</TdFooter>
-                <TdFooterTotal>{totalPeso - pesoTacho}</TdFooterTotal>
+                <TdFooterTotal>{totalPeso + pesoTacho}</TdFooterTotal>
                 <TdFooter>kg</TdFooter>
                 <TdFooter colSpan={2}></TdFooter>
             </tr>

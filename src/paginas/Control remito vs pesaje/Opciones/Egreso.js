@@ -1,39 +1,27 @@
-import React, {useEffect, useState} from "react";
-//import {useData} from "../../../context/DataContext";
+import React, {useEffect, useRef, useState} from "react";
 import {Img, Table, Td, Th} from "../../../components/TableStyles";
 import {useNavigate} from "react-router-dom";
 import {Button, ButtonContainer, PageContainer} from "../../../components/Styles";
 import {TdFooter, TdFooterTotal} from "./Ingreso";
 import axios from "axios";
 
-const TablaDetallesRemitos = ({ remito, tachos, setRemitosFiltrados }) => {
+const TablaDetallesRemitos = ({ remito, tachos, setLoading }) => {
+    const [isEgresando, setIsEgresando] = useState(false);
     const totalPeso = remito.pesoTotal;
-    //{state,dispatch} = useData();
 
     const selectedTacho = tachos.find(tacho => tacho.id === remito.tachoId);
     const pesoTacho = selectedTacho?.peso || 0;
 
     const handleEgresar = () => {
+        setIsEgresando(true);
+        setLoading(true);
         axios.patch(`${API_URL}/${remito.id}/egresar`)
-            .then(() => {
-                // Volver a obtener la lista actualizada de remitos
-                axios.get(`${API_URL}/pesados-no-egresados`)
-                    .then(response => {
-                        setRemitosFiltrados(response.data);
-                    })
-                    .catch(error => console.error("Error al obtener remitos:", error));
-            })
-            .catch(error => console.error("Error al egresar remito:", error));
+            .catch(error => console.error("Error al egresar remito:", error))
+            .finally(() => {
+                setIsEgresando(false);
+                setLoading(false);
+            });
     };
-
-    /*const handleEgresar = () => {
-        dispatch({
-            type: "DEPLOY_REMITO",
-            payload: remito.id,
-        });
-    };
-
-     */
 
     return (
         <Table>
@@ -69,7 +57,9 @@ const TablaDetallesRemitos = ({ remito, tachos, setRemitosFiltrados }) => {
                     <Td>{colada.fecha}</Td>
                     {index === 0 ? (
                         <Td rowSpan={remito.coladas.length}>
-                            <Button onClick={handleEgresar}>Egresar</Button>
+                            <Button onClick={handleEgresar} disabled={isEgresando}>
+                                {isEgresando ? "Egresando..." : "Egresar"}
+                            </Button>
                         </Td>
                     ) : null}
                 </tr>
@@ -98,11 +88,10 @@ const TablaDetallesRemitos = ({ remito, tachos, setRemitosFiltrados }) => {
 const API_URL = "https://backend-mereles.onrender.com/pesajes";
 
 const Egreso = () => {
-    //const { state } = useData();
     const navigate = useNavigate();
     const [remitosFiltrados, setRemitosFiltrados] = useState([]);
-    //const tachos = state.tachos.filter(tacho => tacho.isActive);
     const [tachos, setTachos] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         const fetchRemitosPesadosNoEgresados = () => {
@@ -119,11 +108,17 @@ const Egreso = () => {
         return () => clearInterval(interval);
     }, []);
 
+    const prevTachosRef = useRef([]);
     useEffect(() => {
         const fetchTachosActivos = () => {
             axios.get("https://backend-mereles.onrender.com/tachos/activos")
                 .then(response => {
-                    setTachos(response.data);
+                    const nuevosTachos = response.data;
+
+                    if (JSON.stringify(prevTachosRef.current) !== JSON.stringify(nuevosTachos)) {
+                        setTachos(response.data);
+                        prevTachosRef.current = nuevosTachos;
+                    }
                 })
                 .catch(error => console.error("Error al obtener tachos:", error));
         };
@@ -134,12 +129,6 @@ const Egreso = () => {
         return () => clearInterval(interval);
     }, []);
 
-    /*useEffect(() => {
-        setRemitosFiltrados(state.pesajes.filter(remito => remito.isPesado && !remito.isDeployed));
-    }, [state.pesajes]);
-
-     */
-
     return (
         <PageContainer>
             <h2>Grilla de remitos para entregar</h2>
@@ -149,15 +138,16 @@ const Egreso = () => {
                         <TablaDetallesRemitos
                             remito={remito}
                             tachos={tachos}
-                            setRemitosFiltrados={setRemitosFiltrados}
-                        />
+                            setLoading={setIsLoading} />
                     </div>
                 ))
             ) : (
                 <p>No hay remitos listos para entregar.</p>
             )}
             <ButtonContainer>
-                <Button onClick={() => navigate("/home")}>Volver</Button>
+                <Button onClick={() => navigate("/home")} disabled={isLoading}>
+                    Volver
+                </Button>
             </ButtonContainer>
         </PageContainer>
     );

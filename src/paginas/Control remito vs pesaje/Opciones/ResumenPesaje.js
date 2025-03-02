@@ -1,4 +1,3 @@
-//import { useData } from "../../../context/DataContext";
 import { Table, Th, Td } from "../../../components/TableStyles";
 import { PageContainer} from "../../../components/Styles";
 import React, {useEffect, useState} from "react";
@@ -7,8 +6,6 @@ import axios from "axios";
 const API_URL = "https://backend-mereles.onrender.com/pesajes";
 
 const ResumenPesaje = () => {
-    //const { state } = useData();
-    //const pesajes = state.pesajes
     const [pesajes, setPesajes] = useState([]);
 
     useEffect(() => {

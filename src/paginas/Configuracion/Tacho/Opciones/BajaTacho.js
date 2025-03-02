@@ -1,6 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
 import { useNavigate } from "react-router-dom";
-//import { useData } from "../../../../context/DataContext";
 import {PageContainer, ButtonContainer, Button} from '../../../../components/Styles';
 import Tabla from '../../Common/Tabla';
 import axios from "axios";
@@ -10,11 +9,11 @@ const API_URL = "https://backend-mereles.onrender.com/tachos";
 const BajaTacho = () => {
     const [tachos, setTachos] = useState([]);
     const [selectedTacho, setSelectedTacho] = useState(null);
-    //const { state, dispatch } = useData();
-    //const tachos = state.tachos.filter((m) => m.isActive);
+    const [isLoading, setIsLoading] = useState(false);
+
     const navigate = useNavigate();
 
-    const prevModelosRef = useRef([]);
+    const prevTachosRef = useRef([]);
 
     useEffect(() => {
         const fetchTachosActivos = () => {
@@ -22,9 +21,9 @@ const BajaTacho = () => {
                 .then(response => {
                     const nuevosTachos = response.data;
 
-                    if (JSON.stringify(prevModelosRef.current) !== JSON.stringify(nuevosTachos)) {
+                    if (JSON.stringify(prevTachosRef.current) !== JSON.stringify(nuevosTachos)) {
                         setTachos(response.data);
-                        prevModelosRef.current = nuevosTachos; // Actualizar referencia
+                        prevTachosRef.current = nuevosTachos;
                     }
                 })
                 .catch(error => console.error("Error al obtener tachos:", error));
@@ -43,22 +42,14 @@ const BajaTacho = () => {
 
     const handleEliminar = () => {
         if (!selectedTacho) return;
-
+        setIsLoading(true);
         axios.patch(`${API_URL}/${selectedTacho.id}/desactivar`)
             .then(() => {
                 setSelectedTacho(null);
+                setIsLoading(false);
             })
             .catch(error => console.error("Error al eliminar tacho:", error));
     };
-
-    /*const handleEliminar = () => {
-        if (selectedModel) {
-            dispatch({ type: "DESACTIVAR_TACHO", payload: selectedModel.id });
-            setSelectedModel(null);
-        }
-    };
-
-     */
 
     return (
         <PageContainer>
@@ -84,9 +75,11 @@ const BajaTacho = () => {
             )}
 
             <ButtonContainer>
-                <Button onClick={() => navigate("/home")}>Volver</Button>
+                <Button onClick={() => navigate("/home")} disabled={isLoading}>Volver</Button>
                 {selectedTacho && (
-                    <Button onClick={handleEliminar}>Eliminar</Button>
+                    <Button onClick={handleEliminar} disabled={isLoading}>
+                        {isLoading ? "Borrando..." : "Eliminar"}
+                    </Button>
                 )}
             </ButtonContainer>
         </PageContainer>

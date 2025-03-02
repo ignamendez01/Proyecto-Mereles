@@ -1,6 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
 import { useNavigate } from "react-router-dom";
-//import { useData } from "../../../../context/DataContext";
 import {PageContainer, ButtonContainer, Button} from '../../../../components/Styles';
 import Tabla from '../../Common/Tabla';
 import axios from "axios";
@@ -10,9 +9,10 @@ const API_URL = "https://backend-mereles.onrender.com/modelos";
 const BajaCatalogo = () => {
     const [modelos, setModelos] = useState([]);
     const [selectedModel, setSelectedModel] = useState(null);
-    //const { state, dispatch } = useData();
-    //const modelos = state.modelos.filter((m) => m.isActive);
+    const [isLoading, setIsLoading] = useState(false);
+
     const navigate = useNavigate();
+
     const prevModelosRef = useRef([]);
 
     useEffect(() => {
@@ -23,7 +23,7 @@ const BajaCatalogo = () => {
 
                     if (JSON.stringify(prevModelosRef.current) !== JSON.stringify(nuevosModelos)) {
                         setModelos(nuevosModelos);
-                        prevModelosRef.current = nuevosModelos; // Actualizar referencia
+                        prevModelosRef.current = nuevosModelos;
                     }
                 })
                 .catch(error => console.error("Error al obtener modelos:", error));
@@ -42,22 +42,14 @@ const BajaCatalogo = () => {
 
     const handleEliminar = () => {
         if (!selectedModel) return;
-
+        setIsLoading(true);
         axios.patch(`${API_URL}/${selectedModel.id}/desactivar`)
             .then(() => {
                 setSelectedModel(null);
+                setIsLoading(false);
             })
             .catch(error => console.error("Error al eliminar modelo:", error));
     };
-
-    /*const handleEliminar = () => {
-        if (selectedModel) {
-            dispatch({ type: "DESACTIVAR_MODELO", payload: selectedModel.id });
-            setSelectedModel(null);
-        }
-    };
-
-     */
 
     return (
         <PageContainer>
@@ -83,9 +75,11 @@ const BajaCatalogo = () => {
             )}
 
             <ButtonContainer>
-                <Button onClick={() => navigate("/home")}>Volver</Button>
+                <Button onClick={() => navigate("/home")} disabled={isLoading}>Volver</Button>
                 {selectedModel && (
-                    <Button onClick={handleEliminar}>Eliminar</Button>
+                    <Button onClick={handleEliminar} disabled={isLoading}>
+                        {isLoading ? "Borrando..." : "Eliminar"}
+                    </Button>
                 )}
             </ButtonContainer>
         </PageContainer>

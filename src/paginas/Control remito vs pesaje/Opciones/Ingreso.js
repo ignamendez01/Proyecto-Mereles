@@ -1,5 +1,4 @@
-import React, {useEffect, useState} from "react";
-//import { useData } from "../../../context/DataContext";
+import React, {useEffect, useRef, useState} from "react";
 import { Table, Th, Td, Img } from "../../../components/TableStyles";
 import {Button, ButtonContainer, PageContainer} from "../../../components/Styles";
 import {useNavigate} from "react-router-dom";
@@ -60,7 +59,6 @@ const TablaRemitosAgrupados = ({ pesajes, selectedRemito, setSelectedRemito }) =
 const TablaDetallesRemitos = ({ remito, tachos }) => {
     console.log(remito)
     const totalPeso = remito.pesoTotal;
-    //const { state } = useData();
 
     const selectedTacho = tachos.find(tacho => tacho.id === remito.tachoId);
     const pesoTacho = selectedTacho.peso;
@@ -120,19 +118,23 @@ const TablaDetallesRemitos = ({ remito, tachos }) => {
 const API_URL = "https://backend-mereles.onrender.com/pesajes";
 
 const Ingreso = () => {
-    //const { state, dispatch } = useData();
     const navigate = useNavigate();
     const [selectedRemito, setSelectedRemito] = useState(null);
     const [pesajes, setPesajes] = useState([]);
     const [tachos, setTachos] = useState([]);
-    //const pesajes = state.pesajes.filter(remito => !remito.isPesado);
-    //const tachos = state.tachos.filter(tacho => tacho.isActive);
+    const [isLoading, setIsLoading] = useState(false);
 
+    const prevTachosRef = useRef([]);
     useEffect(() => {
         const fetchTachosActivos = () => {
             axios.get("https://backend-mereles.onrender.com/tachos/activos")
                 .then(response => {
-                    setTachos(response.data);
+                    const nuevosTachos = response.data;
+
+                    if (JSON.stringify(prevTachosRef.current) !== JSON.stringify(nuevosTachos)) {
+                        setTachos(response.data);
+                        prevTachosRef.current = nuevosTachos;
+                    }
                 })
                 .catch(error => console.error("Error al obtener tachos:", error));
         };
@@ -147,7 +149,7 @@ const Ingreso = () => {
         const fetchRemitosNoPesados = () => {
             axios.get(`${API_URL}/no-pesados`)
                 .then(response => {
-                    setPesajes(response.data);
+                    setPesajes(response.data)
                 })
                 .catch(error => console.error("Error al obtener remitos:", error));
         };
@@ -159,22 +161,14 @@ const Ingreso = () => {
     }, []);
 
     function handlePesar() {
+        setIsLoading(true);
         axios.patch(`${API_URL}/${selectedRemito.id}/pesar`)
             .then(() => {
                 setSelectedRemito(null);
+                setIsLoading(false);
             })
             .catch(error => console.error("Error al eliminar remito:", error));
     }
-
-    /*function handlePesar() {
-        if (!selectedRemito || pesajes.empty()) return;
-
-        dispatch({ type: "PESAR_REMITOS", payload: selectedRemito });
-
-        setSelectedRemito(null);
-    }
-
-     */
 
     return (
         <PageContainer>
@@ -197,11 +191,13 @@ const Ingreso = () => {
             )}
 
             <ButtonContainer>
-                <Button onClick={() => navigate("/home")}>Volver</Button>
+                <Button onClick={() => navigate("/home")} disabled={isLoading}>
+                    Volver
+                </Button>
                 <Button
                     onClick={handlePesar}
-                    disabled={!selectedRemito}>
-                    Pesar
+                    disabled={!selectedRemito || isLoading}>
+                    {isLoading ? "Pesando..." : "Pesar"}
                 </Button>
             </ButtonContainer>
         </PageContainer>

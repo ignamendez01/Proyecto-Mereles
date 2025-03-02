@@ -35,7 +35,6 @@ const TablaCrear = ({ object,
                     <Td>{object.descripcion}</Td>
                     <Td>{object.peso}</Td>
                     <Td>
-                        {/*<Img src={object.imagen} alt="Vista previa"/>*/}
                         <Img src={object.imagen instanceof File ? URL.createObjectURL(object.imagen) : object.imagen} alt="Vista previa" />
                     </Td>
                     <Td>

@@ -1,5 +1,4 @@
 import React, {useEffect, useRef, useState} from "react";
-//import { useData } from "../../../../context/DataContext";
 import {PageContainer, ButtonContainer, Button} from '../../../../components/Styles';
 import Tabla from "../../Common/Tabla";
 import {useNavigate} from "react-router-dom";
@@ -8,10 +7,9 @@ import axios from "axios";
 const API_URL = "https://backend-mereles.onrender.com/modelos";
 
 const ResumenCatalogo = () => {
-    //const { state } = useData();
-    //const modelosActivos = state.modelos.filter((modelo) => modelo.isActive);
     const [modelosActivos, setModelosActivos] = useState([]);
     const navigate = useNavigate();
+
     const prevModelosRef = useRef([]);
 
     useEffect(() => {
@@ -22,7 +20,7 @@ const ResumenCatalogo = () => {
 
                     if (JSON.stringify(prevModelosRef.current) !== JSON.stringify(nuevosModelos)) {
                         setModelosActivos(nuevosModelos);
-                        prevModelosRef.current = nuevosModelos; // Actualizar referencia
+                        prevModelosRef.current = nuevosModelos;
                     }
                 })
                 .catch(error => console.error("Error al obtener modelos:", error));

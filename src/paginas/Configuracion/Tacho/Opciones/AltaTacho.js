@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-//import {useData} from "../../../../context/DataContext";
 import { useNavigate } from "react-router-dom";
 import { PageContainer, ButtonContainer, Button } from '../../../../components/Styles';
 import TablaCrear from "../../Common/TablaCrear";
@@ -15,7 +14,6 @@ const AltaTacho = () => {
     const [selectedTacho, setSelectedTacho] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    //const { dispatch } = useData();
     const navigate = useNavigate();
 
     const handleCreateTacho = (newTacho) => {
@@ -43,22 +41,6 @@ const AltaTacho = () => {
         setTachos(updatedTachos);
     };
 
-    /*const handleConfirm = () => {
-        const tachosWithId = tachos.map((tacho, index) => {
-            return {
-                ...tacho,
-            };
-        });
-
-        tachosWithId.forEach(tacho => {
-            dispatch({ type: "ADD_TACHO", payload: {...tacho, isActive:true }});
-        });
-
-        setTachos([]);
-    };
-
-     */
-
     const handleConfirm = async () => {
         setIsLoading(true);
         try {
@@ -81,7 +63,7 @@ const AltaTacho = () => {
         } catch (error) {
             console.error("Error al subir los tachos:", error);
         } finally {
-            setIsLoading(false);  // 👈 Desbloqueamos la UI cuando termina
+            setIsLoading(false);
         }
     };
 
@@ -126,8 +108,6 @@ const AltaTacho = () => {
                     </Button>
                 )}
             </ButtonContainer>
-
-            {isLoading && <p>Cargando...</p>}
         </PageContainer>
     );
 };

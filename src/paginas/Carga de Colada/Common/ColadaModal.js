@@ -2,7 +2,6 @@ import React, {useState, useEffect, useRef} from "react";
 import styled from "styled-components";
 import { Button } from "../../../components/Styles"
 import notImage from "../../../resources/No_Image_Available.jpg"
-//import { useData } from "../../../context/DataContext";
 import axios from "axios";
 
 const ModalOverlay = styled.div`
@@ -49,13 +48,11 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, localId, title }) 
     const [coladaId, setColadaId] = useState(localId);
     const [id, setId] = useState(null);
 
-    //const { state } = useData();
-    //const modelos = state.modelos.filter((m) => m.isActive);
     const [modelos, setModelos] = useState([]);
 
     const imagenPorDefecto = notImage;
 
-    const prevModelosRef = useRef([]); // Guarda la versión anterior de modelos
+    const prevModelosRef = useRef([]);
 
     useEffect(() => {
         const fetchModelosActivos = () => {
@@ -63,10 +60,9 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, localId, title }) 
                 .then(response => {
                     const nuevosModelos = response.data;
 
-                    // Comparar modelos previos con nuevos antes de actualizar
                     if (JSON.stringify(prevModelosRef.current) !== JSON.stringify(nuevosModelos)) {
                         setModelos(nuevosModelos);
-                        prevModelosRef.current = nuevosModelos; // Actualizar referencia
+                        prevModelosRef.current = nuevosModelos;
                     }
                 })
                 .catch(error => console.error("Error al obtener modelos:", error));

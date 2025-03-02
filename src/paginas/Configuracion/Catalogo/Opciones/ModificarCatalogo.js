@@ -1,6 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
 import { useNavigate } from "react-router-dom";
-//import { useData } from "../../../../context/DataContext";
 import {PageContainer, ButtonContainer, Button} from '../../../../components/Styles';
 import Tabla from '../../Common/Tabla';
 import Modal from "../../Common/Modal";
@@ -9,8 +8,6 @@ import axios from "axios";
 const API_URL = "https://backend-mereles.onrender.com/modelos";
 
 const ModificarCatalogo = () => {
-    //const { state, dispatch } = useData();
-    //const modelos = state.modelos.filter((m) => m.isActive);
     const [modelos, setModelos] = useState([]);
     const [selectedModel, setSelectedModel] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,7 +25,7 @@ const ModificarCatalogo = () => {
 
                     if (JSON.stringify(prevModelosRef.current) !== JSON.stringify(nuevosModelos)) {
                         setModelos(nuevosModelos);
-                        prevModelosRef.current = nuevosModelos; // Actualizar referencia
+                        prevModelosRef.current = nuevosModelos;
                     }
                 })
                 .catch(error => console.error("Error al obtener modelos:", error));
@@ -72,6 +69,7 @@ const ModificarCatalogo = () => {
             axios.put(`${API_URL}/${selectedModel.id}`, formData)
                 .then((response) => {
                     setSelectedModel(updatedModelData);
+                    setIsLoading(false);
                 })
                 .catch((error) => {
                     console.error("Error al actualizar el modelo:", error);
@@ -79,21 +77,8 @@ const ModificarCatalogo = () => {
 
         } catch (error) {
             console.error("Error al actualizar el modelo:", error);
-        } finally {
-            setIsLoading(false);  // 👈 Desbloqueamos la UI cuando termina
         }
     };
-
-    /*const handleSubmitEdit = (modelData) => {
-        const updatedModelData = { ...modelData, id: selectedModel.id };
-
-        dispatch({ type: "UPDATE_MODELO", payload: updatedModelData });
-
-        setSelectedModel(updatedModelData);
-        setIsModalOpen(false);
-    };
-
-     */
 
     return (
         <PageContainer>
@@ -126,7 +111,9 @@ const ModificarCatalogo = () => {
             <ButtonContainer>
                 <Button onClick={() => navigate("/home")} disabled={isLoading}>Volver</Button>
                 {selectedModel && (
-                    <Button onClick={handleEditClick} disabled={isLoading}>Modificar</Button>
+                    <Button onClick={handleEditClick} disabled={isLoading}>
+                        {isLoading ? "Modificando..." : "Modificar"}
+                    </Button>
                 )}
             </ButtonContainer>
 
@@ -137,7 +124,6 @@ const ModificarCatalogo = () => {
                 data={selectedModel}
                 title="Editar Modelo"
             />
-            {isLoading && <p>Cargando...</p>}
         </PageContainer>
     );
 };

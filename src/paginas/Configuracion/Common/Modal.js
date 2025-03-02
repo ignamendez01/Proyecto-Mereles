@@ -57,10 +57,6 @@ const Modal = ({ isOpen, onClose, onSubmit, data, title }) => {
             const file = e.target.files[0];
             console.log(file);
             setImagen(file);
-            /*const nuevaImagen = URL.createObjectURL(e.target.files[0]);
-            setImagen(nuevaImagen);
-
-             */
         }
     };
 
@@ -117,7 +113,6 @@ const Modal = ({ isOpen, onClose, onSubmit, data, title }) => {
                         />
                     </div>
 
-                    {/*<Img src={imagen} alt="Vista previa"/>*/}
                     <Img src={imagen instanceof File ? URL.createObjectURL(imagen) : imagen} alt="Vista previa" />
 
                     <Button onClick={handleSubmit} disabled={isDisabled}>Aceptar</Button>

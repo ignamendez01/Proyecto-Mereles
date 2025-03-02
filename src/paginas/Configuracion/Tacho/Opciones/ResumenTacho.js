@@ -1,5 +1,4 @@
 import React, {useEffect, useRef, useState} from "react";
-//import { useData } from "../../../../context/DataContext";
 import {PageContainer, ButtonContainer, Button} from '../../../../components/Styles';
 import Tabla from "../../Common/Tabla";
 import {useNavigate} from "react-router-dom";
@@ -8,12 +7,10 @@ import axios from "axios";
 const API_URL = "https://backend-mereles.onrender.com/tachos";
 
 const ResumenTacho = () => {
-    //const { state } = useData();
-    //const tachosActivos = state.tachos.filter((tacho) => tacho.isActive);
     const [tachosActivos, setTachosActivos] = useState([]);
     const navigate = useNavigate();
 
-    const prevModelosRef = useRef([]);
+    const prevTachosRef = useRef([]);
 
     useEffect(() => {
         const fetchTachosActivos = () => {
@@ -21,9 +18,9 @@ const ResumenTacho = () => {
                 .then(response => {
                     const nuevosTachos = response.data;
 
-                    if (JSON.stringify(prevModelosRef.current) !== JSON.stringify(nuevosTachos)) {
+                    if (JSON.stringify(prevTachosRef.current) !== JSON.stringify(nuevosTachos)) {
                         setTachosActivos(response.data);
-                        prevModelosRef.current = nuevosTachos; // Actualizar referencia
+                        prevTachosRef.current = nuevosTachos;
                     }
                 })
                 .catch(error => console.error("Error al obtener tachos:", error));

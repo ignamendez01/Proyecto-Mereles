@@ -13,11 +13,13 @@ export const TdFooterTotal = styled(Td)`
     background-color: #f8f8f8;
 `;
 
-const TablaEnviarRemito = ({ remito, handleEnviarRemito }) => {
+const TablaEnviarRemito = ({ remito, handleEnviarRemito, enviandoRemitoId }) => {
 
     if (!remito || !remito.coladas || remito.coladas.length === 0) {
         return <p>No hay datos para mostrar.</p>;
     }
+
+    const enviando = enviandoRemitoId === remito.id;
 
     return (
         <Table>
@@ -51,8 +53,9 @@ const TablaEnviarRemito = ({ remito, handleEnviarRemito }) => {
                         <Td rowSpan={remito.coladas.length}>
                             <Button
                                 onClick={() => handleEnviarRemito(remito)}
-                                disabled={remito.enviado}>
-                                Enviar
+                                disabled={enviando || remito.enviado}
+                            >
+                                {enviando ? "Enviando..." : "Enviar"}
                             </Button>
                         </Td>
                     ) : null}
@@ -71,6 +74,5 @@ const TablaEnviarRemito = ({ remito, handleEnviarRemito }) => {
         </Table>
     );
 };
-
 
 export default TablaEnviarRemito;

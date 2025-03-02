@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-//import {useData} from "../../../../context/DataContext";
 import { useNavigate } from "react-router-dom";
 import { PageContainer, ButtonContainer, Button } from '../../../../components/Styles';
 import TablaCrear from "../../Common/TablaCrear";
@@ -15,7 +14,6 @@ const AltaCatalogo = () => {
     const [selectedModel, setSelectedModel] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    //const { dispatch } = useData();
     const navigate = useNavigate();
 
     const handleCreateModel = (newModel) => {
@@ -43,24 +41,8 @@ const AltaCatalogo = () => {
         setModelos(updatedModels);
     };
 
-    /*const handleConfirm = () => {
-        const modelsWithId = modelos.map((model, index) => {
-            return {
-                ...model,
-            };
-        });
-
-        modelsWithId.forEach(model => {
-            dispatch({ type: "ADD_MODELO", payload: {...model, isActive:true }});
-        });
-
-        setModelos([]);
-    };
-
-     */
-
     const handleConfirm = async () => {
-        setIsLoading(true);  // 👈 Bloqueamos la UI
+        setIsLoading(true);
         try {
             for (const modelo of modelos) {
                 const formData = new FormData();
@@ -81,7 +63,7 @@ const AltaCatalogo = () => {
         } catch (error) {
             console.error("Error al subir los modelos:", error);
         } finally {
-            setIsLoading(false);  // 👈 Desbloqueamos la UI cuando termina
+            setIsLoading(false);
         }
     };
 
@@ -126,8 +108,6 @@ const AltaCatalogo = () => {
                     </Button>
                 )}
             </ButtonContainer>
-
-            {isLoading && <p>Cargando...</p>}
         </PageContainer>
     );
 };

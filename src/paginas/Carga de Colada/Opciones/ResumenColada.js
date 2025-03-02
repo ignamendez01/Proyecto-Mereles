@@ -1,5 +1,4 @@
-import React, {useEffect, useState} from "react";
-//import { useData } from "../../../context/DataContext";
+import React, {useEffect, useRef, useState} from "react";
 import { Button, ButtonContainer, PageContainer } from "../../../components/Styles";
 import { useNavigate } from "react-router-dom";
 import TablaRemito from "../Common/TablaRemito";
@@ -11,8 +10,6 @@ const API_URL = "https://backend-mereles.onrender.com/remitos";
 const ResumenColada = () => {
     const navigate = useNavigate();
 
-    //const { state, dispatch } = useData();
-    //const remitos = state.remitos.filter(remito => remito.isActive);
     const [remitos, setRemitos] = useState([]);
 
     const [selectedId, setSelectedId] = useState("");
@@ -21,14 +18,22 @@ const ResumenColada = () => {
     const [remitosFiltrados, setRemitosFiltrados] = useState(remitos);
 
     const [modoFiltrado, setModoFiltrado] = useState(false);
+    const [enviandoRemitoId, setEnviandoRemitoId] = useState(null);
 
     const remitoIds = remitos.map(remito => remito.id);
+
+    const prevRemitosRef = useRef([]);
 
     useEffect(() => {
         const fetchRemitosActivos = () => {
             axios.get(`${API_URL}/activos`)
                 .then(response => {
-                    setRemitos(response.data);
+                    const nuevosRemitos = response.data;
+
+                    if (JSON.stringify(prevRemitosRef.current) !== JSON.stringify(nuevosRemitos)) {
+                        setRemitos(response.data);
+                        prevRemitosRef.current = nuevosRemitos;
+                    }
                 })
                 .catch(error => console.error("Error al obtener remitos:", error));
         };
@@ -72,29 +77,17 @@ const ResumenColada = () => {
 
     const handleEnviarRemito = (remito) => {
         const remitoId = remito.id;
+        setEnviandoRemitoId(remito.id);
 
         axios.patch(`${API_URL}/${remitoId}/enviar`)
             .then(() => {
                 axios.post(`https://backend-mereles.onrender.com/pesajes/crearDesdeRemito/${remitoId}`)
                     .catch(error => console.error("Error al crear pesaje desde remito:", error));
+                setSelectedId("")
             })
-            .catch(error => console.error("Error al enviar remito:", error));
+            .catch(error => console.error("Error al enviar remito:", error))
+            .finally(() => setEnviandoRemitoId(null));
     };
-
-    /*const handleEnviarRemito = (remito) => {
-        const pesoTotal = remito.pesoTotal;
-        const coladas = remito.coladas
-        const tachoId = remito.tachoId
-
-        dispatch({
-            type: "ADD_PESAJE",
-            payload: { coladas, pesoTotal, tachoId },
-        });
-
-        dispatch({ type: "ENVIAR_REMITO", payload: remito });
-    };
-
-     */
 
     useEffect(() => {
         setRemitosFiltrados(remitos);
@@ -149,17 +142,25 @@ const ResumenColada = () => {
                     {modoFiltrado ? (
                         <TablaRemito remito={remito} />
                     ) : (
-                        <TablaEnviarRemito remito={remito} handleEnviarRemito={handleEnviarRemito}/>
+                        <TablaEnviarRemito
+                            remito={remito}
+                            handleEnviarRemito={handleEnviarRemito}
+                            enviandoRemitoId={enviandoRemitoId}
+                        />
                     )}
                 </div>
             ))}
 
             <ButtonContainer>
-                <Button onClick={() => navigate("/home")}>Volver</Button>
+                <Button
+                    onClick={() => navigate("/home")}
+                    disabled={enviandoRemitoId !== null}
+                >
+                    Volver
+                </Button>
             </ButtonContainer>
         </PageContainer>
     );
 };
-
 
 export default ResumenColada;

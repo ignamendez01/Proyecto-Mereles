@@ -1,5 +1,4 @@
-import React, {useEffect, useState} from "react";
-//import {useData} from "../../../context/DataContext";
+import React, {useEffect, useRef, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {Button, ButtonContainer, PageContainer} from '../../../components/Styles';
 import TablaColada from "../Common/TablaColada";
@@ -20,19 +19,26 @@ const AltaColada = () => {
     const [selectedTacho, setSelectedTacho] = useState(null);
     const [tachoId, setTachoId] = useState("");
 
-    //const { state, dispatch } = useData();
-    //const tachos = state.tachos.filter((m) => m.isActive);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [isSending, setIsSending] = useState(false);
+
     const [tachos, setTachos] = useState([]);
     const navigate = useNavigate();
 
     const imagenPorDefecto = notImage;
     const [imagen, setImagen] = useState(imagenPorDefecto);
+    const prevTachosRef = useRef([]);
 
     useEffect(() => {
         const fetchTachosActivos = () => {
             axios.get("https://backend-mereles.onrender.com/tachos/activos")
                 .then(response => {
-                    setTachos(response.data);
+                    const nuevosTachos = response.data;
+
+                    if (JSON.stringify(prevTachosRef.current) !== JSON.stringify(nuevosTachos)) {
+                        setTachos(response.data);
+                        prevTachosRef.current = nuevosTachos;
+                    }
                 })
                 .catch(error => console.error("Error al obtener tachos:", error));
         };
@@ -92,21 +98,8 @@ const AltaColada = () => {
         }
     };
 
-    /*const handleGenerate = () => {
-        const pesoTotal = coladas.reduce((total, colada) => total + colada.pesoTotal, 0);
-
-        dispatch({
-            type: "ADD_REMITOS",
-            payload: { coladas, pesoTotal, tachoId, enviado: false },
-        });
-
-        setColadaId(1);
-        setColadas([]);
-    };
-
-     */
-
     const handleGenerate = async () => {
+        setIsGenerating(true)
         const pesoTotal = coladas.reduce((total, colada) => total + colada.pesoTotal, 0);
         const nuevoRemito = { coladas, pesoTotal, tachoId};
 
@@ -117,11 +110,13 @@ const AltaColada = () => {
                 setTachoId("")
                 setSelectedTacho(null)
                 setImagen(imagenPorDefecto)
+                setIsGenerating(false)
             })
             .catch(error => console.error("Error al crear remito:", error));
     };
 
     const handleDeploy = () => {
+        setIsSending(true)
         const pesoTotal = coladas.reduce((total, colada) => total + colada.pesoTotal, 0);
         const nuevoRemito = { coladas, pesoTotal, tachoId };
         const remitoAPesar = { coladas, pesoTotal, tachoId };
@@ -135,6 +130,7 @@ const AltaColada = () => {
                         setTachoId("")
                         setSelectedTacho(null)
                         setImagen(imagenPorDefecto)
+                        setIsSending(false)
                     })
                     .catch(error => {
                         console.error("Error al enviar remito a pesar:", error);
@@ -145,28 +141,12 @@ const AltaColada = () => {
             });
     };
 
-    /*const handleDeploy = () => {
-        const pesoTotal = coladas.reduce((total, colada) => total + colada.pesoTotal, 0);
-        dispatch({
-            type: "ADD_PESAJE",
-            payload: { coladas, pesoTotal, tachoId },
-        });
-
-        dispatch({
-            type: "ADD_REMITOS",
-            payload: { coladas, pesoTotal, tachoId, enviado: true },
-        });
-
-        setColadaId(1);
-        setColadas([]);
-    };
-
-     */
-
     return (
         <PageContainer>
             <h2>Alta de Remitos</h2>
-            <Button onClick={() => setIsModalOpen(true)}>Agregar Colada</Button>
+            <Button onClick={() => setIsModalOpen(true)} disabled={isSending || isGenerating}>
+                Agregar Colada
+            </Button>
 
             <ColadaModal
                 isOpen={isModalOpen}
@@ -217,16 +197,18 @@ const AltaColada = () => {
             }
 
             <ButtonContainer>
-                <Button onClick={() => navigate("/home")}>Volver</Button>
+                <Button onClick={() => navigate("/home")} disabled={isSending || isGenerating}>
+                    Volver
+                </Button>
                 <Button
                     onClick={handleGenerate}
-                    disabled={coladas.length === 0 || !tachoId}>
-                    Generar
+                    disabled={coladas.length === 0 || !tachoId || isSending || isGenerating}>
+                    {isGenerating ? "Generando..." : "Generar"}
                 </Button>
                 <Button
                     onClick={handleDeploy}
-                    disabled={coladas.length === 0 || !tachoId}>
-                    Enviar a producción
+                    disabled={coladas.length === 0 || !tachoId || isSending || isGenerating}>
+                    {isSending ? "Enviando..." : "Enviar a producción"}
                 </Button>
             </ButtonContainer>
         </PageContainer>

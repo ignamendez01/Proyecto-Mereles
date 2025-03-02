@@ -1,6 +1,5 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import { useNavigate } from "react-router-dom";
-//import {useData} from "../../../context/DataContext";
 import {ButtonContainer, PageContainer, Button} from "../../../components/Styles";
 import TablaColada from "../Common/TablaColada";
 import ColadaModal, {Img} from "../Common/ColadaModal";
@@ -11,9 +10,7 @@ const API_URL = "https://backend-mereles.onrender.com/remitos";
 
 const ModificarColada = () => {
     const navigate = useNavigate();
-    //const { state, dispatch } = useData();
 
-    //const remitos = state.remitos.filter(remito => remito.isActive);
     const [remitos, setRemitos] = useState([]);
     const [selectedId, setSelectedId] = useState("");
     const [selectedColada, setSelectedColada] = useState(null);
@@ -21,16 +18,22 @@ const ModificarColada = () => {
     const [selectedTachoId, setSelectedTachoId] = useState("");
     const [localColadas, setLocalColadas] = useState([]);
     const [imagen, setImagen] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     const remitoIds = remitos.map(remito => remito.id);
     const [tachos, setTachos] = useState([]);
-    //const tachos = state.tachos.filter(tacho => tacho.isActive);
 
+    const prevRemitosRef = useRef([]);
     useEffect(() => {
         const fetchRemitosActivos = () => {
             axios.get(`${API_URL}/activos`)
                 .then(response => {
-                    setRemitos(response.data);
+                    const nuevosRemitos = response.data;
+
+                    if (JSON.stringify(prevRemitosRef.current) !== JSON.stringify(nuevosRemitos)) {
+                        setRemitos(response.data);
+                        prevRemitosRef.current = nuevosRemitos;
+                    }
                 })
                 .catch(error => console.error("Error al obtener remitos:", error));
         };
@@ -41,11 +44,17 @@ const ModificarColada = () => {
         return () => clearInterval(interval);
     }, []);
 
+    const prevTachosRef = useRef([]);
     useEffect(() => {
         const fetchTachosActivos = () => {
             axios.get("https://backend-mereles.onrender.com/tachos/activos")
                 .then(response => {
-                    setTachos(response.data);
+                    const nuevosTachos = response.data;
+
+                    if (JSON.stringify(prevTachosRef.current) !== JSON.stringify(nuevosTachos)) {
+                        setTachos(response.data);
+                        prevTachosRef.current = nuevosTachos;
+                    }
                 })
                 .catch(error => console.error("Error al obtener tachos:", error));
         };
@@ -108,6 +117,7 @@ const ModificarColada = () => {
             console.error("No se ha seleccionado un remito para actualizar.");
             return;
         }
+        setIsLoading(true);
 
         const pesoTotal = localColadas.reduce((total, colada) => total + colada.pesoTotal, 0);
 
@@ -122,24 +132,10 @@ const ModificarColada = () => {
                 setSelectedId("");
                 setLocalColadas([]);
                 setSelectedTachoId("");
+                setIsLoading(false);
             })
             .catch(error => console.error("Error al editar remito:", error));
     };
-
-
-    /*const handleUpdateRemito = () => {
-        const updatedRemito = {
-            ...remitos.find(remito => remito.id === parseInt(selectedId)),
-            tachoId: selectedTachoId,
-            coladas: localColadas,
-        };
-
-        dispatch({ type: "UPDATE_REMITO", payload: updatedRemito });
-        setSelectedId("");
-        setLocalColadas([])
-    };
-
-     */
 
     function handleSelectTacho(e) {
         const tachoSeleccionado = tachos.find(tacho => tacho.id === parseInt(e.target.value));
@@ -213,8 +209,12 @@ const ModificarColada = () => {
             )}
 
             <ButtonContainer>
-                <Button onClick={() => navigate("/home")}>Volver</Button>
-                <Button onClick={handleUpdateRemito} disabled={!selectedId}>Actualizar Remito</Button>
+                <Button onClick={() => navigate("/home")} disabled={isLoading}>
+                    Volver
+                </Button>
+                <Button onClick={handleUpdateRemito} disabled={!selectedId || isLoading}>
+                    {isLoading ? "Actualizando..." : "Actualizar Remito"}
+                </Button>
             </ButtonContainer>
         </PageContainer>
     );

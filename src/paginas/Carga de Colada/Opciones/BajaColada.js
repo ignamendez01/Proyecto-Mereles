@@ -1,6 +1,5 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {useNavigate} from "react-router-dom";
-//import {useData} from "../../../context/DataContext";
 import {ButtonContainer, PageContainer, Button} from "../../../components/Styles";
 import TablaRemito from "../Common/TablaRemito";
 import axios from "axios";
@@ -9,20 +8,25 @@ const API_URL = "https://backend-mereles.onrender.com/remitos";
 
 const BajaColada = () => {
     const navigate = useNavigate();
-    //const { state, dispatch } = useData();
 
-    //const remitos = state.remitos.filter(remito => remito.isActive);
     const [remitos, setRemitos] = useState([]);
     const [selectedId, setSelectedId] = useState("");
     const [remitosFiltrados, setRemitosFiltrados] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
 
     const remitoIds = remitos.map(remito => remito.id);
+    const prevRemitosRef = useRef([]);
 
     useEffect(() => {
         const fetchRemitosActivos = () => {
             axios.get(`${API_URL}/activos`)
                 .then(response => {
-                    setRemitos(response.data);
+                    const nuevosRemitos = response.data;
+
+                    if (JSON.stringify(prevRemitosRef.current) !== JSON.stringify(nuevosRemitos)) {
+                        setRemitos(response.data);
+                        prevRemitosRef.current = nuevosRemitos;
+                    }
                 })
                 .catch(error => console.error("Error al obtener remitos:", error));
         };
@@ -46,27 +50,16 @@ const BajaColada = () => {
 
     const handleEliminar = () => {
         if (!selectedId) return;
+        setIsLoading(true);
 
         axios.patch(`${API_URL}/${selectedId}/desactivar`)
             .then(() => {
                 setSelectedId("");
                 setRemitosFiltrados([]);
+                setIsLoading(false)
             })
             .catch(error => console.error("Error al eliminar remito:", error));
     };
-
-    /*const handleEliminar = () => {
-        if (!selectedId) return;
-
-        const remitoAEliminar = remitos.find(remito => remito.id === parseInt(selectedId));
-        dispatch({ type: "DESACTIVAR_REMITO", payload: remitoAEliminar });
-
-        setSelectedId("");
-        setRemitosFiltrados([]);
-    };
-
-     */
-
 
     return (
         <PageContainer>
@@ -94,9 +87,11 @@ const BajaColada = () => {
             ))}
 
             <ButtonContainer>
-                <Button onClick={() => navigate("/home")}>Volver</Button>
-                <Button onClick={handleEliminar} disabled={!selectedId}>
-                    Eliminar
+                <Button onClick={() => navigate("/home")} disabled={isLoading}>
+                    Volver
+                </Button>
+                <Button onClick={handleEliminar} disabled={!selectedId || isLoading}>
+                    {isLoading ? "Eliminando..." : "Eliminar"}
                 </Button>
             </ButtonContainer>
         </PageContainer>

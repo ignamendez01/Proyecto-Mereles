@@ -1,21 +1,28 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Img, Table, Td, Th} from "../../../components/TableStyles";
 import {useNavigate} from "react-router-dom";
 import {Button, ButtonContainer, PageContainer} from "../../../components/Styles";
 import {TdFooter, TdFooterTotal} from "./Ingreso";
 import axios from "axios";
 
-const TablaDetallesRemitos = ({ remito, tachos, setLoading }) => {
+const API_URL = process.env.REACT_APP_API_URL;
+
+const TablaDetallesRemitos = ({ remito, setLoading }) => {
     const [isEgresando, setIsEgresando] = useState(false);
     const totalPeso = remito.pesoTotal;
+    const [pesoTacho, setPesoTacho] = useState(null);
 
-    const selectedTacho = tachos.find(tacho => tacho.id === remito.tachoId);
-    const pesoTacho = selectedTacho?.peso || 0;
+    axios.get(`${API_URL}/tachos/${remito.tachoId}`)
+        .then(response => {
+            const tacho = response.data;
+            setPesoTacho(tacho.peso);
+        })
+        .catch(error => console.error("Error al obtener tacho:", error));
 
     const handleEgresar = () => {
         setIsEgresando(true);
         setLoading(true);
-        axios.patch(`${API_URL}/${remito.id}/egresar`)
+        axios.patch(`${API_URL}/pesajes/${remito.id}/egresar`)
             .catch(error => console.error("Error al egresar remito:", error))
             .finally(() => {
                 setIsEgresando(false);
@@ -85,17 +92,14 @@ const TablaDetallesRemitos = ({ remito, tachos, setLoading }) => {
     );
 };
 
-const API_URL = "https://backend-mereles.onrender.com/pesajes";
-
 const Egreso = () => {
     const navigate = useNavigate();
     const [remitosFiltrados, setRemitosFiltrados] = useState([]);
-    const [tachos, setTachos] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         const fetchRemitosPesadosNoEgresados = () => {
-            axios.get(`${API_URL}/pesados-no-egresados`)
+            axios.get(`${API_URL}/pesajes/pesados-no-egresados`)
                 .then(response => {
                     setRemitosFiltrados(response.data);
                 })
@@ -108,27 +112,6 @@ const Egreso = () => {
         return () => clearInterval(interval);
     }, []);
 
-    const prevTachosRef = useRef([]);
-    useEffect(() => {
-        const fetchTachosActivos = () => {
-            axios.get("https://backend-mereles.onrender.com/tachos/activos")
-                .then(response => {
-                    const nuevosTachos = response.data;
-
-                    if (JSON.stringify(prevTachosRef.current) !== JSON.stringify(nuevosTachos)) {
-                        setTachos(response.data);
-                        prevTachosRef.current = nuevosTachos;
-                    }
-                })
-                .catch(error => console.error("Error al obtener tachos:", error));
-        };
-
-        fetchTachosActivos();
-        const interval = setInterval(fetchTachosActivos, 1000);
-
-        return () => clearInterval(interval);
-    }, []);
-
     return (
         <PageContainer>
             <h2>Grilla de remitos para entregar</h2>
@@ -137,7 +120,6 @@ const Egreso = () => {
                     <div key={remito.id}>
                         <TablaDetallesRemitos
                             remito={remito}
-                            tachos={tachos}
                             setLoading={setIsLoading} />
                     </div>
                 ))

@@ -36,6 +36,8 @@ export const Img = styled.img`
     height: 85px;
 `;
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, localId, title }) => {
     const [fecha, setFecha] = useState("");
     const [colada, setColada] = useState("");
@@ -56,7 +58,7 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, localId, title }) 
 
     useEffect(() => {
         const fetchModelosActivos = () => {
-            axios.get("https://backend-mereles.onrender.com/modelos/activos")
+            axios.get(`${API_URL}/modelos/activos`)
                 .then(response => {
                     const nuevosModelos = response.data;
 
@@ -82,15 +84,20 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, localId, title }) 
             setPesoTotal(coladaData.pesoTotal);
             setCantidad(coladaData.cantidad);
             setPeso(coladaData.peso);
-            setImagen(coladaData.imagen || imagenPorDefecto);
             setColadaId(coladaData.coladaId);
             setId(coladaData.id);
-
-            if (coladaData.modeloId && modelos.length > 0) {
+            if (modelos.length > 0) {
                 const foundModel = modelos.find(model => model.id === coladaData.modeloId);
-                setSelectedModel(foundModel || null);
+                if(foundModel){
+                    setSelectedModel(foundModel);
+                    setImagen(coladaData.imagen);
+                }else{
+                    setSelectedModel(null);
+                    setImagen(imagenPorDefecto);
+                }
             } else {
                 setSelectedModel(null);
+                setImagen(imagenPorDefecto);
             }
         } else {
             resetForm();

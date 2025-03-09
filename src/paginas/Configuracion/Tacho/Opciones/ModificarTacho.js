@@ -5,7 +5,7 @@ import Tabla from '../../Common/Tabla';
 import Modal from "../../Common/Modal";
 import axios from "axios";
 
-const API_URL = "https://backend-mereles.onrender.com/tachos";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const ModificarTacho = () => {
     const [tachos, setTachos] = useState([]);
@@ -19,7 +19,7 @@ const ModificarTacho = () => {
 
     useEffect(() => {
         const fetchTachosActivos = () => {
-            axios.get(`${API_URL}/activos`)
+            axios.get(`${API_URL}/tachos/activos`)
                 .then(response => {
                     const nuevosTachos = response.data;
 
@@ -66,7 +66,7 @@ const ModificarTacho = () => {
                 formData.append("imagen", updatedTachoData.imagen);
             }
 
-            axios.put(`${API_URL}/${selectedTacho.id}`, formData)
+            axios.put(`${API_URL}/tachos/${selectedTacho.id}`, formData)
                 .then((response) => {
                     setSelectedTacho(updatedTachoData);
                     setIsLoading(false);

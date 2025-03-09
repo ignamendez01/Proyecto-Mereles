@@ -4,7 +4,7 @@ import {PageContainer, ButtonContainer, Button} from '../../../../components/Sty
 import Tabla from '../../Common/Tabla';
 import axios from "axios";
 
-const API_URL = "https://backend-mereles.onrender.com/modelos";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const BajaCatalogo = () => {
     const [modelos, setModelos] = useState([]);
@@ -17,7 +17,7 @@ const BajaCatalogo = () => {
 
     useEffect(() => {
         const fetchModelosActivos = () => {
-            axios.get(`${API_URL}/activos`)
+            axios.get(`${API_URL}/modelos/activos`)
                 .then(response => {
                     const nuevosModelos = response.data;
 
@@ -43,7 +43,7 @@ const BajaCatalogo = () => {
     const handleEliminar = () => {
         if (!selectedModel) return;
         setIsLoading(true);
-        axios.patch(`${API_URL}/${selectedModel.id}/desactivar`)
+        axios.patch(`${API_URL}/modelos/${selectedModel.id}/desactivar`)
             .then(() => {
                 setSelectedModel(null);
                 setIsLoading(false);

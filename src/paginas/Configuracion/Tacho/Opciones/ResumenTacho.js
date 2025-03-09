@@ -4,7 +4,7 @@ import Tabla from "../../Common/Tabla";
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
 
-const API_URL = "https://backend-mereles.onrender.com/tachos";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const ResumenTacho = () => {
     const [tachosActivos, setTachosActivos] = useState([]);
@@ -14,7 +14,7 @@ const ResumenTacho = () => {
 
     useEffect(() => {
         const fetchTachosActivos = () => {
-            axios.get(`${API_URL}/activos`)
+            axios.get(`${API_URL}/tachos/activos`)
                 .then(response => {
                     const nuevosTachos = response.data;
 
@@ -38,7 +38,7 @@ const ResumenTacho = () => {
             {tachosActivos.length > 0 ? (
                 <Tabla object={tachosActivos} />
             ) : (
-                <p>No hay modelos activos para mostrar.</p>
+                <p>No hay tachos activos para mostrar.</p>
             )}
             <ButtonContainer>
                 <Button onClick={() => navigate("/home")}>Volver</Button>

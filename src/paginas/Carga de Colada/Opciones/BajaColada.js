@@ -4,7 +4,7 @@ import {ButtonContainer, PageContainer, Button} from "../../../components/Styles
 import TablaRemito from "../Common/TablaRemito";
 import axios from "axios";
 
-const API_URL = "https://backend-mereles.onrender.com/remitos";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const BajaColada = () => {
     const navigate = useNavigate();
@@ -19,7 +19,7 @@ const BajaColada = () => {
 
     useEffect(() => {
         const fetchRemitosActivos = () => {
-            axios.get(`${API_URL}/activos`)
+            axios.get(`${API_URL}/remitos/activos`)
                 .then(response => {
                     const nuevosRemitos = response.data;
 
@@ -52,7 +52,7 @@ const BajaColada = () => {
         if (!selectedId) return;
         setIsLoading(true);
 
-        axios.patch(`${API_URL}/${selectedId}/desactivar`)
+        axios.patch(`${API_URL}/remitos/${selectedId}/desactivar`)
             .then(() => {
                 setSelectedId("");
                 setRemitosFiltrados([]);

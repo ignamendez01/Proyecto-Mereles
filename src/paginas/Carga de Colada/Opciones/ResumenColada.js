@@ -5,7 +5,7 @@ import TablaRemito from "../Common/TablaRemito";
 import TablaEnviarRemito from "../Common/TablaEnviarRemito";
 import axios from "axios";
 
-const API_URL = "https://backend-mereles.onrender.com/remitos";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const ResumenColada = () => {
     const navigate = useNavigate();
@@ -26,7 +26,7 @@ const ResumenColada = () => {
 
     useEffect(() => {
         const fetchRemitosActivos = () => {
-            axios.get(`${API_URL}/activos`)
+            axios.get(`${API_URL}/remitos/activos`)
                 .then(response => {
                     const nuevosRemitos = response.data;
 
@@ -79,9 +79,9 @@ const ResumenColada = () => {
         const remitoId = remito.id;
         setEnviandoRemitoId(remito.id);
 
-        axios.patch(`${API_URL}/${remitoId}/enviar`)
+        axios.patch(`${API_URL}/remitos/${remitoId}/enviar`)
             .then(() => {
-                axios.post(`https://backend-mereles.onrender.com/pesajes/crearDesdeRemito/${remitoId}`)
+                axios.post(`${API_URL}/pesajes/crearDesdeRemito/${remitoId}`)
                     .catch(error => console.error("Error al crear pesaje desde remito:", error));
                 setSelectedId("")
             })

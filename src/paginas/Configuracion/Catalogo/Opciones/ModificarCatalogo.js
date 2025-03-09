@@ -5,7 +5,7 @@ import Tabla from '../../Common/Tabla';
 import Modal from "../../Common/Modal";
 import axios from "axios";
 
-const API_URL = "https://backend-mereles.onrender.com/modelos";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const ModificarCatalogo = () => {
     const [modelos, setModelos] = useState([]);
@@ -19,7 +19,7 @@ const ModificarCatalogo = () => {
 
     useEffect(() => {
         const fetchModelosActivos = () => {
-            axios.get(`${API_URL}/activos`)
+            axios.get(`${API_URL}/modelos/activos`)
                 .then(response => {
                     const nuevosModelos = response.data;
 
@@ -66,7 +66,7 @@ const ModificarCatalogo = () => {
                 formData.append("imagen", updatedModelData.imagen);
             }
 
-            axios.put(`${API_URL}/${selectedModel.id}`, formData)
+            axios.put(`${API_URL}/modelos/${selectedModel.id}`, formData)
                 .then((response) => {
                     setSelectedModel(updatedModelData);
                     setIsLoading(false);

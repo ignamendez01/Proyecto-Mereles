@@ -4,7 +4,7 @@ import Tabla from "../../Common/Tabla";
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
 
-const API_URL = "https://backend-mereles.onrender.com/modelos";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const ResumenCatalogo = () => {
     const [modelosActivos, setModelosActivos] = useState([]);
@@ -14,7 +14,7 @@ const ResumenCatalogo = () => {
 
     useEffect(() => {
         const fetchModelosActivos = () => {
-            axios.get(`${API_URL}/activos`)
+            axios.get(`${API_URL}/modelos/activos`)
                 .then(response => {
                     const nuevosModelos = response.data;
 

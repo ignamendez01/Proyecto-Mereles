@@ -6,7 +6,7 @@ import ColadaModal, {Img} from "../Common/ColadaModal";
 import notImage from "../../../resources/No_Image_Available.jpg";
 import axios from "axios";
 
-const API_URL = "https://backend-mereles.onrender.com/remitos";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const AltaColada = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,11 +27,11 @@ const AltaColada = () => {
 
     const imagenPorDefecto = notImage;
     const [imagen, setImagen] = useState(imagenPorDefecto);
-    const prevTachosRef = useRef([]);
 
+    const prevTachosRef = useRef([]);
     useEffect(() => {
         const fetchTachosActivos = () => {
-            axios.get("https://backend-mereles.onrender.com/tachos/activos")
+            axios.get(`${API_URL}/tachos/activos`)
                 .then(response => {
                     const nuevosTachos = response.data;
 
@@ -103,7 +103,7 @@ const AltaColada = () => {
         const pesoTotal = coladas.reduce((total, colada) => total + colada.pesoTotal, 0);
         const nuevoRemito = { coladas, pesoTotal, tachoId};
 
-        axios.post(`${API_URL}/generar`, nuevoRemito)
+        axios.post(`${API_URL}/remitos/generar`, nuevoRemito)
             .then(() => {
                 setColadaId(1);
                 setColadas([]);
@@ -121,9 +121,9 @@ const AltaColada = () => {
         const nuevoRemito = { coladas, pesoTotal, tachoId };
         const remitoAPesar = { coladas, pesoTotal, tachoId };
 
-        axios.post(`${API_URL}/enviar`, nuevoRemito)
+        axios.post(`${API_URL}/remitos/enviar`, nuevoRemito)
             .then(() => {
-                axios.post("https://backend-mereles.onrender.com/pesajes/crear", remitoAPesar )
+                axios.post(`${API_URL}/pesajes/crear`, remitoAPesar )
                     .then(() => {
                         setColadaId(1);
                         setColadas([]);

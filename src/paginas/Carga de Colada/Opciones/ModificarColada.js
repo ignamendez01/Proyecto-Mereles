@@ -4,9 +4,9 @@ import {ButtonContainer, PageContainer, Button} from "../../../components/Styles
 import TablaColada from "../Common/TablaColada";
 import ColadaModal, {Img} from "../Common/ColadaModal";
 import axios from "axios";
+import notImage from "../../../resources/No_Image_Available.jpg";
 
-//const API_URL = "http://localhost:8080/remitos";
-const API_URL = "https://backend-mereles.onrender.com/remitos";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const ModificarColada = () => {
     const navigate = useNavigate();
@@ -21,12 +21,13 @@ const ModificarColada = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const remitoIds = remitos.map(remito => remito.id);
+    const imagenPorDefecto = notImage;
     const [tachos, setTachos] = useState([]);
 
     const prevRemitosRef = useRef([]);
     useEffect(() => {
         const fetchRemitosActivos = () => {
-            axios.get(`${API_URL}/activos`)
+            axios.get(`${API_URL}/remitos/activos`)
                 .then(response => {
                     const nuevosRemitos = response.data;
 
@@ -47,7 +48,7 @@ const ModificarColada = () => {
     const prevTachosRef = useRef([]);
     useEffect(() => {
         const fetchTachosActivos = () => {
-            axios.get("https://backend-mereles.onrender.com/tachos/activos")
+            axios.get(`${API_URL}/tachos/activos`)
                 .then(response => {
                     const nuevosTachos = response.data;
 
@@ -79,9 +80,19 @@ const ModificarColada = () => {
                 coladaId: index+1,
             }));
             setLocalColadas(coladasConId);
-            const tachoSeleccionado = tachos.find(tacho => tacho.id === parseInt(remitoSeleccionado.tachoId));
-            setSelectedTachoId(tachoSeleccionado.id);
-            setImagen(tachoSeleccionado.imagen);
+            if (tachos.length > 0) {
+                const tachoSeleccionado = tachos.find(tacho => tacho.id === parseInt(remitoSeleccionado.tachoId));
+                if(tachoSeleccionado){
+                    setSelectedTachoId(tachoSeleccionado.id);
+                    setImagen(tachoSeleccionado.imagen);
+                }else{
+                    setSelectedTachoId(null);
+                    setImagen(imagenPorDefecto);
+                }
+            } else {
+                setSelectedTachoId(null);
+                setImagen(imagenPorDefecto);
+            }
         }
     };
 
@@ -127,7 +138,7 @@ const ModificarColada = () => {
             tachoId: selectedTachoId
         };
 
-        axios.put(`${API_URL}/${selectedId}/actualizar`, remitoUpdateDTO)
+        axios.put(`${API_URL}/remitos/${selectedId}/actualizar`, remitoUpdateDTO)
             .then(() => {
                 setSelectedId("");
                 setLocalColadas([]);

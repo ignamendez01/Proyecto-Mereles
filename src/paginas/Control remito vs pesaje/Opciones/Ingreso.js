@@ -1,10 +1,12 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useState} from "react";
 import { Table, Th, Td, Img } from "../../../components/TableStyles";
 import {Button, ButtonContainer, PageContainer} from "../../../components/Styles";
 import {useNavigate} from "react-router-dom";
 import styled from "styled-components";
 import CheckBoxOutlinedIcon from '@mui/icons-material/CheckBoxOutlined';
 import axios from "axios";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 export const IconButton = styled.button`
     padding: 10px 20px;
@@ -56,12 +58,17 @@ const TablaRemitosAgrupados = ({ pesajes, selectedRemito, setSelectedRemito }) =
     </Table>
 );
 
-const TablaDetallesRemitos = ({ remito, tachos }) => {
+const TablaDetallesRemitos = ({remito}) => {
     console.log(remito)
     const totalPeso = remito.pesoTotal;
+    const [pesoTacho, setPesoTacho] = useState(null);
 
-    const selectedTacho = tachos.find(tacho => tacho.id === remito.tachoId);
-    const pesoTacho = selectedTacho.peso;
+    axios.get(`${API_URL}/tachos/${remito.tachoId}`)
+        .then(response => {
+            const tacho = response.data;
+            setPesoTacho(tacho.peso);
+        })
+        .catch(error => console.error("Error al obtener tacho:", error));
 
     return (
         <Table>
@@ -115,39 +122,15 @@ const TablaDetallesRemitos = ({ remito, tachos }) => {
     );
 };
 
-const API_URL = "https://backend-mereles.onrender.com/pesajes";
-
 const Ingreso = () => {
     const navigate = useNavigate();
     const [selectedRemito, setSelectedRemito] = useState(null);
     const [pesajes, setPesajes] = useState([]);
-    const [tachos, setTachos] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-
-    const prevTachosRef = useRef([]);
-    useEffect(() => {
-        const fetchTachosActivos = () => {
-            axios.get("https://backend-mereles.onrender.com/tachos/activos")
-                .then(response => {
-                    const nuevosTachos = response.data;
-
-                    if (JSON.stringify(prevTachosRef.current) !== JSON.stringify(nuevosTachos)) {
-                        setTachos(response.data);
-                        prevTachosRef.current = nuevosTachos;
-                    }
-                })
-                .catch(error => console.error("Error al obtener tachos:", error));
-        };
-
-        fetchTachosActivos();
-        const interval = setInterval(fetchTachosActivos, 1000);
-
-        return () => clearInterval(interval);
-    }, []);
 
     useEffect(() => {
         const fetchRemitosNoPesados = () => {
-            axios.get(`${API_URL}/no-pesados`)
+            axios.get(`${API_URL}/pesajes/no-pesados`)
                 .then(response => {
                     setPesajes(response.data)
                 })
@@ -162,7 +145,7 @@ const Ingreso = () => {
 
     function handlePesar() {
         setIsLoading(true);
-        axios.patch(`${API_URL}/${selectedRemito.id}/pesar`)
+        axios.patch(`${API_URL}/pesajes/${selectedRemito.id}/pesar`)
             .then(() => {
                 setSelectedRemito(null);
                 setIsLoading(false);
@@ -186,7 +169,7 @@ const Ingreso = () => {
             {selectedRemito && (
                 <div key={selectedRemito.id}>
                     <h2>Grilla de remitos para pesaje</h2>
-                    <TablaDetallesRemitos remito={selectedRemito} tachos={tachos} />
+                    <TablaDetallesRemitos remito={selectedRemito}/>
                 </div>
             )}
 

@@ -5,7 +5,7 @@ import TablaCrear from "../../Common/TablaCrear";
 import Modal from "../../Common/Modal";
 import axios from "axios";
 
-const API_URL = "https://backend-mereles.onrender.com/tachos";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const AltaTacho = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -53,7 +53,7 @@ const AltaTacho = () => {
                     formData.append("imagen", tacho.imagen);
                 }
 
-                await axios.post(API_URL, formData, {
+                await axios.post(`${API_URL}/tachos`, formData, {
                     headers: {
                         "Content-Type": "multipart/form-data",
                     },

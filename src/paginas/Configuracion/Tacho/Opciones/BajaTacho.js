@@ -4,7 +4,7 @@ import {PageContainer, ButtonContainer, Button} from '../../../../components/Sty
 import Tabla from '../../Common/Tabla';
 import axios from "axios";
 
-const API_URL = "https://backend-mereles.onrender.com/tachos";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const BajaTacho = () => {
     const [tachos, setTachos] = useState([]);
@@ -17,7 +17,7 @@ const BajaTacho = () => {
 
     useEffect(() => {
         const fetchTachosActivos = () => {
-            axios.get(`${API_URL}/activos`)
+            axios.get(`${API_URL}/tachos/activos`)
                 .then(response => {
                     const nuevosTachos = response.data;
 
@@ -43,7 +43,7 @@ const BajaTacho = () => {
     const handleEliminar = () => {
         if (!selectedTacho) return;
         setIsLoading(true);
-        axios.patch(`${API_URL}/${selectedTacho.id}/desactivar`)
+        axios.patch(`${API_URL}/${selectedTacho.id}/tachos/desactivar`)
             .then(() => {
                 setSelectedTacho(null);
                 setIsLoading(false);

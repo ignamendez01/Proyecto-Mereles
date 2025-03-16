@@ -35,6 +35,17 @@ const BajaTacho = () => {
         return () => clearInterval(interval);
     }, []);
 
+    useEffect(() => {
+        if (selectedTacho) {
+            const tachoEncontrado = tachos.find(m => m.id === selectedTacho.id);
+            if (tachoEncontrado) {
+                setSelectedTacho(tachoEncontrado);
+            } else {
+                setSelectedTacho(null);
+            }
+        }
+    }, [tachos])
+
     const handleSelectChange = (event) => {
         const tacho = tachos.find(t => t.id === parseInt(event.target.value));
         setSelectedTacho(tacho || null);
@@ -43,7 +54,7 @@ const BajaTacho = () => {
     const handleEliminar = () => {
         if (!selectedTacho) return;
         setIsLoading(true);
-        axios.patch(`${API_URL}/${selectedTacho.id}/tachos/desactivar`)
+        axios.patch(`${API_URL}/tachos/${selectedTacho.id}/desactivar`)
             .then(() => {
                 setSelectedTacho(null);
                 setIsLoading(false);
@@ -55,13 +66,13 @@ const BajaTacho = () => {
         <PageContainer>
             <h2>Baja de Tachos</h2>
             <div className="input-container">
-                <label htmlFor="model-select">Seleccionar Modelo:</label>
-                <select id="model-select" style={{fontSize:"16px"}} onChange={handleSelectChange} defaultValue="">
+                <label htmlFor="tacho-select">Seleccionar Modelo:</label>
+                <select id="tacho-select" style={{fontSize:"16px"}} onChange={handleSelectChange} defaultValue="">
                     <option value="">Seleccione un tacho</option>
                     {tachos.length > 0 ? (
-                        tachos.map((modelo) => (
-                            <option key={modelo.id} value={modelo.id}>
-                                {modelo.id} - {modelo.descripcion}
+                        tachos.map((tacho) => (
+                            <option key={tacho.id} value={tacho.id}>
+                                {tacho.id} - {tacho.descripcion}
                             </option>
                         ))
                     ) : (

@@ -37,6 +37,17 @@ const ModificarTacho = () => {
         return () => clearInterval(interval);
     }, []);
 
+    useEffect(() => {
+        if (selectedTacho) {
+            const tachoEncontrado = tachos.find(m => m.id === selectedTacho.id);
+            if (tachoEncontrado) {
+                setSelectedTacho(tachoEncontrado);
+            } else {
+                setSelectedTacho(null);
+            }
+        }
+    }, [tachos])
+
     const handleSelectChange = (event) => {
         const tacho = tachos.find(m => m.id === parseInt(event.target.value));
         if (tacho && tacho.id) {

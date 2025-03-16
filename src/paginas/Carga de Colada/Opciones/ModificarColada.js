@@ -13,21 +13,24 @@ const ModificarColada = () => {
 
     const [remitos, setRemitos] = useState([]);
     const [selectedId, setSelectedId] = useState("");
-    const [selectedColada, setSelectedColada] = useState(null);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [selectedTachoId, setSelectedTachoId] = useState("");
+
     const [localColadas, setLocalColadas] = useState([]);
+    const [selectedColada, setSelectedColada] = useState(null);
+
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+    const [tachos, setTachos] = useState([]);
+    const [selectedTachoId, setSelectedTachoId] = useState("");
+    const [selectedTachoPeso, setSelectedTachoPeso] = useState("");
     const [imagen, setImagen] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-
-    const remitoIds = remitos.map(remito => remito.id);
     const imagenPorDefecto = notImage;
-    const [tachos, setTachos] = useState([]);
 
     const prevRemitosRef = useRef([]);
+
     useEffect(() => {
         const fetchRemitosActivos = () => {
-            axios.get(`${API_URL}/remitos/activos`)
+            axios.get(`${API_URL}/remitos/locales`)
                 .then(response => {
                     const nuevosRemitos = response.data;
 
@@ -45,7 +48,76 @@ const ModificarColada = () => {
         return () => clearInterval(interval);
     }, []);
 
+    useEffect(() => {
+        if (selectedId) {
+            const remitoSeleccionado = remitos.find(remito => remito.id === parseInt(selectedId));
+            if (remitoSeleccionado) {
+                const coladasConId = remitoSeleccionado.coladas.map((colada, index) => ({
+                    ...colada,
+                    coladaId: index+1,
+                }));
+                setLocalColadas(coladasConId);
+                if (tachos.length > 0) {
+                    const tachoSeleccionado = tachos.find(tacho => tacho.id === parseInt(remitoSeleccionado.tachoId));
+                    if(tachoSeleccionado){
+                        setSelectedTachoId(tachoSeleccionado.id);
+                        setSelectedTachoPeso(tachoSeleccionado.peso);
+                        setImagen(tachoSeleccionado.imagen);
+                    }else{
+                        setSelectedTachoId(null);
+                        setSelectedTachoPeso(null);
+                        setImagen(imagenPorDefecto);
+                    }
+                } else {
+                    setSelectedTachoId(null);
+                    setSelectedTachoPeso(null);
+                    setImagen(imagenPorDefecto);
+                }
+            } else {
+                setSelectedId("")
+                setSelectedTachoId("");
+                setSelectedTachoPeso("");
+                setLocalColadas([]);
+            }
+        }
+    }, [remitos])
+
+    const handleSelect = (e) => {
+        const newId = e.target.value;
+        setSelectedId(newId);
+
+        if (!newId) {
+            setSelectedTachoId("");
+            setSelectedTachoPeso("");
+            setLocalColadas([]);
+        } else {
+            const remitoSeleccionado = remitos.find(remito => remito.id === parseInt(newId));
+            const coladasConId = remitoSeleccionado.coladas.map((colada, index) => ({
+                ...colada,
+                coladaId: index+1,
+            }));
+            setLocalColadas(coladasConId);
+            if (tachos.length > 0) {
+                const tachoSeleccionado = tachos.find(tacho => tacho.id === parseInt(remitoSeleccionado.tachoId));
+                if(tachoSeleccionado){
+                    setSelectedTachoId(tachoSeleccionado.id);
+                    setSelectedTachoPeso(tachoSeleccionado.peso);
+                    setImagen(tachoSeleccionado.imagen);
+                }else{
+                    setSelectedTachoId(null);
+                    setSelectedTachoPeso(null);
+                    setImagen(imagenPorDefecto);
+                }
+            } else {
+                setSelectedTachoId(null);
+                setSelectedTachoPeso(null);
+                setImagen(imagenPorDefecto);
+            }
+        }
+    };
+
     const prevTachosRef = useRef([]);
+
     useEffect(() => {
         const fetchTachosActivos = () => {
             axios.get(`${API_URL}/tachos/activos`)
@@ -66,34 +138,39 @@ const ModificarColada = () => {
         return () => clearInterval(interval);
     }, []);
 
-    const handleSelect = (e) => {
-        const newId = e.target.value;
-        setSelectedId(newId);
-
-        if (!newId) {
-            setSelectedTachoId("");
-            setLocalColadas([]);
-        } else {
-            const remitoSeleccionado = remitos.find(remito => remito.id === parseInt(newId));
-            const coladasConId = remitoSeleccionado.coladas.map((colada, index) => ({
-                ...colada,
-                coladaId: index+1,
-            }));
-            setLocalColadas(coladasConId);
-            if (tachos.length > 0) {
+    useEffect(() => {
+        if (selectedTachoId) {
+            const tachoEncontrado = tachos.find(t => t.id === selectedTachoId);
+            if (tachoEncontrado) {
+                setSelectedTachoId(tachoEncontrado.id);
+                setImagen(tachoEncontrado.imagen);
+                setSelectedTachoPeso(tachoEncontrado.peso);
+            } else {
+                const remitoSeleccionado = remitos.find(remito => remito.id === parseInt(selectedId));
                 const tachoSeleccionado = tachos.find(tacho => tacho.id === parseInt(remitoSeleccionado.tachoId));
                 if(tachoSeleccionado){
                     setSelectedTachoId(tachoSeleccionado.id);
+                    setSelectedTachoPeso(tachoSeleccionado.peso);
                     setImagen(tachoSeleccionado.imagen);
                 }else{
                     setSelectedTachoId(null);
+                    setSelectedTachoPeso(null);
                     setImagen(imagenPorDefecto);
                 }
-            } else {
-                setSelectedTachoId(null);
-                setImagen(imagenPorDefecto);
             }
         }
+    }, [tachos])
+
+    function handleSelectTacho(e) {
+        const tachoSeleccionado = tachos.find(tacho => tacho.id === parseInt(e.target.value));
+        setSelectedTachoId(tachoSeleccionado.id);
+        setSelectedTachoPeso(tachoSeleccionado.peso);
+        setImagen(tachoSeleccionado.imagen);
+    }
+
+    const handleEditColada = (colada) => {
+        setSelectedColada(colada);
+        setIsEditModalOpen(true);
     };
 
     const handleSaveColada = (updatedColada) => {
@@ -135,7 +212,8 @@ const ModificarColada = () => {
         const remitoUpdateDTO = {
             coladas: localColadas,
             pesoTotal: pesoTotal,
-            tachoId: selectedTachoId
+            tachoId: selectedTachoId,
+            pesoTacho: selectedTachoPeso
         };
 
         axios.put(`${API_URL}/remitos/${selectedId}/actualizar`, remitoUpdateDTO)
@@ -143,20 +221,10 @@ const ModificarColada = () => {
                 setSelectedId("");
                 setLocalColadas([]);
                 setSelectedTachoId("");
+                setSelectedTachoPeso("");
                 setIsLoading(false);
             })
             .catch(error => console.error("Error al editar remito:", error));
-    };
-
-    function handleSelectTacho(e) {
-        const tachoSeleccionado = tachos.find(tacho => tacho.id === parseInt(e.target.value));
-        setSelectedTachoId(tachoSeleccionado.id);
-        setImagen(tachoSeleccionado.imagen);
-    }
-
-    const handleEditColada = (colada) => {
-        setSelectedColada(colada);
-        setIsEditModalOpen(true);
     };
 
     return (
@@ -165,12 +233,13 @@ const ModificarColada = () => {
 
             <div className="input-container">
                 <label htmlFor="remito-select">Seleccionar Remito:</label>
-                <select style={{ fontSize: "16px" }} value={selectedId} onChange={handleSelect}>
+                <select id="remito-select" style={{ fontSize: "16px" }} defaultValue="" value={selectedId}
+                        onChange={handleSelect}>
                     <option value="">Seleccionar remito</option>
-                    {remitoIds.length > 0 ? (
-                        remitoIds.map((id) => (
-                            <option key={id} value={id}>
-                                Remito n°: {id}
+                    {remitos.length > 0 ? (
+                        remitos.map((remito) => (
+                            <option key={remito.id} value={remito.id}>
+                                Remito n°: {remito.id}
                             </option>
                         ))
                     ) : (

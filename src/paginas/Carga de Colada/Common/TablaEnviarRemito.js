@@ -34,12 +34,17 @@ const TablaEnviarRemito = ({ remito, handleEnviarRemito, enviandoRemitoId }) => 
                 <Th>Colada n°</Th>
                 <Th>Fecha</Th>
                 <Th>Enviar</Th>
+                <Th>Estado</Th>
             </tr>
             </thead>
             <tbody>
             {remito.coladas.map((colada, index) => (
                 <tr key={colada.colada}>
-                    <Td>{remito.id}</Td>
+                    {index === 0 ? (
+                        <Td>
+                            {remito.id}
+                        </Td>
+                    ) : null}
                     <Td>{colada.modeloId}</Td>
                     <Td>
                         <Img src={colada.imagen} alt="Modelo" />
@@ -57,6 +62,11 @@ const TablaEnviarRemito = ({ remito, handleEnviarRemito, enviandoRemitoId }) => 
                             >
                                 {enviando ? "Enviando..." : "Enviar"}
                             </Button>
+                        </Td>
+                    ) : null}
+                    {index === 0 ? (
+                        <Td rowSpan={remito.coladas.length}>
+                            {remito.estado}
                         </Td>
                     ) : null}
                 </tr>

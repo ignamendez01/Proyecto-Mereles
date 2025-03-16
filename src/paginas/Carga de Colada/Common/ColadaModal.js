@@ -41,7 +41,6 @@ const API_URL = process.env.REACT_APP_API_URL;
 const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, localId, title }) => {
     const [fecha, setFecha] = useState("");
     const [colada, setColada] = useState("");
-    const [selectedModel, setSelectedModel] = useState(null);
     const [modeloId, setModeloId] = useState("");
     const [imagen, setImagen] = useState(null);
     const [cantidad, setCantidad] = useState("");
@@ -63,7 +62,7 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, localId, title }) 
                     const nuevosModelos = response.data;
 
                     if (JSON.stringify(prevModelosRef.current) !== JSON.stringify(nuevosModelos)) {
-                        setModelos(nuevosModelos);
+                        setModelos(response.data);
                         prevModelosRef.current = nuevosModelos;
                     }
                 })
@@ -80,31 +79,50 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, localId, title }) 
         if (coladaData) {
             setFecha(coladaData.fecha);
             setColada(coladaData.colada);
-            setModeloId(coladaData.modeloId);
-            setPesoTotal(coladaData.pesoTotal);
             setCantidad(coladaData.cantidad);
-            setPeso(coladaData.peso);
             setColadaId(coladaData.coladaId);
             setId(coladaData.id);
-            if (modelos.length > 0) {
-                const foundModel = modelos.find(model => model.id === coladaData.modeloId);
-                if(foundModel){
-                    setSelectedModel(foundModel);
-                    setImagen(coladaData.imagen);
-                }else{
-                    setSelectedModel(null);
-                    setImagen(imagenPorDefecto);
-                }
-            } else {
-                setSelectedModel(null);
-                setImagen(imagenPorDefecto);
-            }
+            setModeloId(coladaData.modeloId);
+            setPeso(coladaData.peso);
+            setPesoTotal(coladaData.pesoTotal);
+            setImagen(coladaData.imagen || imagenPorDefecto);
         } else {
             resetForm();
         }
-    }, [coladaData, modelos]);
+    }, [coladaData]);
 
-
+    useEffect(() => {
+        if (modeloId){
+            const modelo = modelos.find((modelo) => modelo.id === modeloId);
+            if (modelo){
+                setPeso(modelo.peso);
+                if (cantidad) {
+                    setPesoTotal(modelo.peso * cantidad);
+                }
+                setImagen(modelo.imagen);
+            }else if(coladaData){
+                setModeloId(coladaData.modeloId);
+                setPeso(coladaData.peso);
+                setPesoTotal(coladaData.pesoTotal);
+                setImagen(coladaData.imagen);
+            }else{
+                setModeloId("");
+                setPeso("");
+                setPesoTotal("");
+                setImagen(imagenPorDefecto);
+            }
+        }else if(coladaData){
+            setModeloId(coladaData.modeloId);
+            setPeso(coladaData.peso);
+            setPesoTotal(coladaData.pesoTotal);
+            setImagen(coladaData.imagen);
+        }else{
+            setModeloId("");
+            setPeso("");
+            setPesoTotal("");
+            setImagen(imagenPorDefecto);
+        }
+    }, [modelos]);
 
     useEffect(() => {
         setColadaId(localId);
@@ -113,7 +131,6 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, localId, title }) 
     const handleSelectChange = (event) => {
         const model = modelos.find(m => m.id === parseInt(event.target.value));
         if (model && model.id) {
-            setSelectedModel(model);
             setImagen(model.imagen);
             setModeloId(model.id);
             setPeso(model.peso);
@@ -121,7 +138,6 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, localId, title }) 
                 setPesoTotal(model.peso * cantidad);
             }
         } else {
-            setSelectedModel(null);
             setImagen(imagenPorDefecto);
             setModeloId(null);
             setPeso(null);
@@ -140,7 +156,7 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, localId, title }) 
     };
 
     const handleSubmit = () => {
-        if (!fecha || !colada || !cantidad || !selectedModel || imagen === imagenPorDefecto) return;
+        if (!fecha || !colada || !cantidad || !modeloId || imagen === imagenPorDefecto) return;
         let newModel;
         if (id){
             newModel = { fecha, colada, modeloId, imagen, cantidad, peso, pesoTotal, coladaId, id };
@@ -157,7 +173,6 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, localId, title }) 
         setColada("");
         setModeloId("");
         setCantidad("");
-        setSelectedModel("");
         setPesoTotal("");
         setPeso("");
         setImagen(imagenPorDefecto);
@@ -170,7 +185,7 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, localId, title }) 
         onClose()
     };
 
-    const isDisabled = !fecha || !colada || !cantidad || !selectedModel || imagen === imagenPorDefecto;
+    const isDisabled = !fecha || !colada || !cantidad || !modeloId || imagen === imagenPorDefecto;
 
     return (
         isOpen && (
@@ -195,7 +210,7 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, localId, title }) 
                     </div>
                     <div className="input-container">
                         <label>Modelo:</label>
-                        <select style={{fontSize: "16px"}} value={selectedModel?.id || ""}
+                        <select style={{fontSize: "16px"}} value={modeloId || ""}
                                 onChange={handleSelectChange}>
                             <option value="">Selecciona un modelo</option>
                             {modelos.length > 0 ? (

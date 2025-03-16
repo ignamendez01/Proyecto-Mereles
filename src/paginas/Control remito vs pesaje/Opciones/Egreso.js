@@ -10,24 +10,21 @@ const API_URL = process.env.REACT_APP_API_URL;
 const TablaDetallesRemitos = ({ remito, setLoading }) => {
     const [isEgresando, setIsEgresando] = useState(false);
     const totalPeso = remito.pesoTotal;
-    const [pesoTacho, setPesoTacho] = useState(null);
-
-    axios.get(`${API_URL}/tachos/${remito.tachoId}`)
-        .then(response => {
-            const tacho = response.data;
-            setPesoTacho(tacho.peso);
-        })
-        .catch(error => console.error("Error al obtener tacho:", error));
+    const tachoPeso = remito.tachoPeso;
 
     const handleEgresar = () => {
         setIsEgresando(true);
         setLoading(true);
         axios.patch(`${API_URL}/pesajes/${remito.id}/egresar`)
-            .catch(error => console.error("Error al egresar remito:", error))
-            .finally(() => {
-                setIsEgresando(false);
-                setLoading(false);
-            });
+            .then(() => {
+                axios.patch(`${API_URL}/remitos/${remito.remitoId}/egresar`)
+                    .then(() => {
+                        setIsEgresando(false);
+                        setLoading(false);
+                    })
+                    .catch(error => console.error("Error al actualizar remito:", error));
+            })
+            .catch(error => console.error("Error al egresar remito:", error));
     };
 
     return (
@@ -58,7 +55,7 @@ const TablaDetallesRemitos = ({ remito, setLoading }) => {
                     <Td>{colada.peso}</Td>
                     <Td>{colada.pesoTotal}</Td>
                     {index === 0 ? (
-                        <Td rowSpan={remito.coladas.length}>{pesoTacho}</Td>
+                        <Td rowSpan={remito.coladas.length}>{tachoPeso}</Td>
                     ) : null}
                     <Td>{colada.colada}</Td>
                     <Td>{colada.fecha}</Td>
@@ -83,7 +80,7 @@ const TablaDetallesRemitos = ({ remito, setLoading }) => {
             <tr>
                 <TdFooter colSpan={4}></TdFooter>
                 <TdFooter>Total Pesaje</TdFooter>
-                <TdFooterTotal>{totalPeso + pesoTacho}</TdFooterTotal>
+                <TdFooterTotal>{totalPeso + tachoPeso}</TdFooterTotal>
                 <TdFooter>kg</TdFooter>
                 <TdFooter colSpan={3}></TdFooter>
             </tr>
@@ -94,6 +91,7 @@ const TablaDetallesRemitos = ({ remito, setLoading }) => {
 
 const Egreso = () => {
     const navigate = useNavigate();
+
     const [remitosFiltrados, setRemitosFiltrados] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 

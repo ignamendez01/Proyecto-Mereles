@@ -1,13 +1,15 @@
 import { Table, Th, Td } from "../../../components/TableStyles";
-import { PageContainer} from "../../../components/Styles";
+import {Button, ButtonContainer, PageContainer} from "../../../components/Styles";
 import React, {useEffect, useState} from "react";
 import axios from "axios";
+import {useNavigate} from "react-router-dom";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 const ResumenPesaje = () => {
+    const navigate = useNavigate();
+
     const [pesajes, setPesajes] = useState([]);
-    const [pesosTachos, setPesosTachos] = useState({});
 
     useEffect(() => {
         const fetchRemitos = () => {
@@ -23,23 +25,6 @@ const ResumenPesaje = () => {
 
         return () => clearInterval(interval);
     }, []);
-
-    const getPesoOfTacho = (tachoId) => {
-        if (pesosTachos[tachoId] !== undefined) {
-            return pesosTachos[tachoId];
-        }
-
-        axios.get(`${API_URL}/tachos/${tachoId}`)
-            .then(response => {
-                setPesosTachos(prev => ({
-                    ...prev,
-                    [tachoId]: response.data.peso
-                }));
-            })
-            .catch(error => console.error(`Error al obtener el peso del tacho ${tachoId}:`, error));
-
-        return 0;
-    };
 
     return (
         <PageContainer>
@@ -57,7 +42,7 @@ const ResumenPesaje = () => {
                     {pesajes.map((remito) => (
                         <tr key={remito.id}>
                             <Td>{remito.id}</Td>
-                            <Td>{remito.pesoTotal + getPesoOfTacho(remito.tachoId)}</Td>
+                            <Td>{remito.pesoTotal + remito.tachoPeso}</Td>
                             <Td>
                                 {remito.egresado ? "Egresado" : remito.pesado ? "Pesado" : "Ingresó"}
                             </Td>
@@ -68,8 +53,13 @@ const ResumenPesaje = () => {
             ) : (
                 <p>No hay remitos para mostrar.</p>
             )}
+            <ButtonContainer>
+                <Button onClick={() => navigate("/home")}>
+                    Volver
+                </Button>
+            </ButtonContainer>
         </PageContainer>
-    );
+);
 };
 
 export default ResumenPesaje;

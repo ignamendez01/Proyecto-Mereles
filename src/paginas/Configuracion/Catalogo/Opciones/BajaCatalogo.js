@@ -35,6 +35,17 @@ const BajaCatalogo = () => {
         return () => clearInterval(interval);
     }, []);
 
+    useEffect(() => {
+        if (selectedModel) {
+            const modeloEncontrado = modelos.find(m => m.id === selectedModel.id);
+            if (modeloEncontrado) {
+                setSelectedModel(modeloEncontrado);
+            } else {
+                setSelectedModel(null);
+            }
+        }
+    }, [modelos])
+
     const handleSelectChange = (event) => {
         const model = modelos.find(m => m.id === parseInt(event.target.value));
         setSelectedModel(model || null);

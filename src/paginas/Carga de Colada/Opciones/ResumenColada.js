@@ -44,6 +44,48 @@ const ResumenColada = () => {
         return () => clearInterval(interval);
     }, []);
 
+    useEffect(() => {
+        if(selectedId) {
+            const remitoSelected = remitos.find(remito => remito.id === parseInt(selectedId));
+            if (remitoSelected) {
+                let nuevosRemitos = remitos.filter(m => m.id === parseInt(selectedId));
+                console.log(nuevosRemitos)
+                if(modoFiltrado) {
+                    nuevosRemitos = nuevosRemitos.map(remito => ({
+                        ...remito,
+                        coladas: remito.coladas.filter(colada => {
+                            const fechaColada = new Date(colada.fecha);
+                            return fechaColada >= new Date(fechaDesde) && fechaColada <= new Date(fechaHasta);
+                        })
+                    }));
+                }
+                setRemitosFiltrados(nuevosRemitos);
+            }else{
+                setSelectedId("");
+                setFechaDesde("");
+                setFechaHasta("");
+                setModoFiltrado(false);
+            }
+
+        }else{
+            setRemitosFiltrados(remitos);
+        }
+    }, [remitos]);
+
+    const handleSelect = (e) => {
+        const newId = e.target.value;
+        setSelectedId(newId);
+        setFechaDesde("");
+        setFechaHasta("");
+        setModoFiltrado(false);
+
+        if (!newId) {
+            setRemitosFiltrados(remitos);
+        } else {
+            setRemitosFiltrados(remitos.filter(remito => remito.id === parseInt(newId)));
+        }
+    };
+
     const handleBuscar = () => {
         let nuevosRemitos = remitos.filter(remito => remito.id === parseInt(selectedId));
 
@@ -61,20 +103,6 @@ const ResumenColada = () => {
         setRemitosFiltrados(nuevosRemitos);
     };
 
-    const handleSelect = (e) => {
-        const newId = e.target.value;
-        setSelectedId(newId);
-        setFechaDesde("");
-        setFechaHasta("");
-        setModoFiltrado(false);
-
-        if (!newId) {
-            setRemitosFiltrados(remitos);
-        } else {
-            setRemitosFiltrados(remitos.filter(remito => remito.id === parseInt(newId)));
-        }
-    };
-
     const handleEnviarRemito = (remito) => {
         const remitoId = remito.id;
         setEnviandoRemitoId(remito.id);
@@ -88,10 +116,6 @@ const ResumenColada = () => {
             .catch(error => console.error("Error al enviar remito:", error))
             .finally(() => setEnviandoRemitoId(null));
     };
-
-    useEffect(() => {
-        setRemitosFiltrados(remitos);
-    }, [remitos]);
 
     return (
         <PageContainer>

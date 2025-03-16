@@ -10,8 +10,10 @@ const API_URL = process.env.REACT_APP_API_URL;
 const AltaTacho = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
     const [tachos, setTachos] = useState([]);
     const [selectedTacho, setSelectedTacho] = useState(null);
+
     const [isLoading, setIsLoading] = useState(false);
 
     const navigate = useNavigate();

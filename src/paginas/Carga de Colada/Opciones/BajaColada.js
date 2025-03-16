@@ -11,15 +11,14 @@ const BajaColada = () => {
 
     const [remitos, setRemitos] = useState([]);
     const [selectedId, setSelectedId] = useState("");
-    const [remitosFiltrados, setRemitosFiltrados] = useState([]);
+    const [selectedRemito, setSelectedRemito] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    const remitoIds = remitos.map(remito => remito.id);
     const prevRemitosRef = useRef([]);
 
     useEffect(() => {
-        const fetchRemitosActivos = () => {
-            axios.get(`${API_URL}/remitos/activos`)
+        const fetchRemitosLocales = () => {
+            axios.get(`${API_URL}/remitos/locales`)
                 .then(response => {
                     const nuevosRemitos = response.data;
 
@@ -31,20 +30,34 @@ const BajaColada = () => {
                 .catch(error => console.error("Error al obtener remitos:", error));
         };
 
-        fetchRemitosActivos();
-        const interval = setInterval(fetchRemitosActivos, 1000);
+        fetchRemitosLocales();
+        const interval = setInterval(fetchRemitosLocales, 1000);
 
         return () => clearInterval(interval);
     }, []);
 
-    const handleSelect = (e) => {
-        const newId = e.target.value;
-        setSelectedId(newId);
+    useEffect(() => {
+        if (selectedRemito) {
+            const tachoEncontrado = remitos.find(m => m.id === selectedRemito.id);
+            if (tachoEncontrado) {
+                setSelectedRemito(tachoEncontrado);
+                setSelectedId(tachoEncontrado.id);
+            } else {
+                setSelectedRemito(null);
+                setSelectedId("");
+            }
+        }
+    }, [remitos])
 
-        if (!newId) {
-            setRemitosFiltrados([]);
+    const handleSelect = (e) => {
+        const remito = remitos.find(r => r.id === parseInt(e.target.value));
+
+        if (!remito) {
+            setSelectedRemito(null);
+            setSelectedId("");
         } else {
-            setRemitosFiltrados(remitos.filter(remito => remito.id === parseInt(newId)));
+            setSelectedRemito(remito);
+            setSelectedId(remito.id);
         }
     };
 
@@ -55,7 +68,7 @@ const BajaColada = () => {
         axios.patch(`${API_URL}/remitos/${selectedId}/desactivar`)
             .then(() => {
                 setSelectedId("");
-                setRemitosFiltrados([]);
+                setSelectedRemito(null)
                 setIsLoading(false)
             })
             .catch(error => console.error("Error al eliminar remito:", error));
@@ -65,13 +78,13 @@ const BajaColada = () => {
         <PageContainer>
             <h2>Baja de Remitos</h2>
             <div className="input-container">
-                <label htmlFor="model-select">Seleccionar Remito:</label>
-                <select style={{ fontSize: "16px" }} value={selectedId} onChange={handleSelect}>
+                <label htmlFor="remito-select">Seleccionar Remito:</label>
+                <select id="remito-select" style={{ fontSize: "16px" }} defaultValue="" onChange={handleSelect}>
                     <option value="">Seleccionar remito</option>
-                    {remitoIds.length > 0 ? (
-                        remitoIds.map((id) => (
-                            <option key={id} value={id}>
-                                Remito n°: {id}
+                    {remitos.length > 0 ? (
+                        remitos.map((remito) => (
+                            <option key={remito.id} value={remito.id}>
+                                Remito n°: {remito.id}
                             </option>
                         ))
                     ) : (
@@ -80,11 +93,11 @@ const BajaColada = () => {
                 </select>
             </div>
 
-            {remitosFiltrados.map(remito => (
-                <div key={remito.id}>
-                    <TablaRemito remito={remito} />
+            {selectedRemito && (
+                <div key={selectedRemito.id}>
+                    <TablaRemito remito={selectedRemito}/>
                 </div>
-            ))}
+            )}
 
             <ButtonContainer>
                 <Button onClick={() => navigate("/home")} disabled={isLoading}>

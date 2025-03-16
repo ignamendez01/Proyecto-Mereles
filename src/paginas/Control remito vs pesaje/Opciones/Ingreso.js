@@ -59,16 +59,8 @@ const TablaRemitosAgrupados = ({ pesajes, selectedRemito, setSelectedRemito }) =
 );
 
 const TablaDetallesRemitos = ({remito}) => {
-    console.log(remito)
     const totalPeso = remito.pesoTotal;
-    const [pesoTacho, setPesoTacho] = useState(null);
-
-    axios.get(`${API_URL}/tachos/${remito.tachoId}`)
-        .then(response => {
-            const tacho = response.data;
-            setPesoTacho(tacho.peso);
-        })
-        .catch(error => console.error("Error al obtener tacho:", error));
+    const tachoPeso = remito.tachoPeso;
 
     return (
         <Table>
@@ -96,7 +88,7 @@ const TablaDetallesRemitos = ({remito}) => {
                     <Td>{colada.peso}</Td>
                     <Td>{colada.pesoTotal}</Td>
                     {index === 0 ? (
-                        <Td rowSpan={remito.coladas.length}>{pesoTacho}</Td>
+                        <Td rowSpan={remito.coladas.length}>{tachoPeso}</Td>
                     ) : null}
                     <Td>{colada.fecha}</Td>
                 </tr>
@@ -113,7 +105,7 @@ const TablaDetallesRemitos = ({remito}) => {
             <tr>
                 <TdFooter colSpan={4}></TdFooter>
                 <TdFooter>Total Pesaje</TdFooter>
-                <TdFooterTotal>{totalPeso + pesoTacho}</TdFooterTotal>
+                <TdFooterTotal>{totalPeso + tachoPeso}</TdFooterTotal>
                 <TdFooter>kg</TdFooter>
                 <TdFooter colSpan={2}></TdFooter>
             </tr>
@@ -124,6 +116,7 @@ const TablaDetallesRemitos = ({remito}) => {
 
 const Ingreso = () => {
     const navigate = useNavigate();
+
     const [selectedRemito, setSelectedRemito] = useState(null);
     const [pesajes, setPesajes] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -143,14 +136,27 @@ const Ingreso = () => {
         return () => clearInterval(interval);
     }, []);
 
+    useEffect(() => {
+        if (selectedRemito){
+            const chosenRemito = pesajes.find(remito => remito.id === parseInt(selectedRemito.id))
+            if (!chosenRemito) {
+                setSelectedRemito(null);
+            }
+        }
+    }, [pesajes]);
+
     function handlePesar() {
         setIsLoading(true);
         axios.patch(`${API_URL}/pesajes/${selectedRemito.id}/pesar`)
             .then(() => {
-                setSelectedRemito(null);
-                setIsLoading(false);
+                axios.patch(`${API_URL}/remitos/${selectedRemito.remitoId}/pesar`)
+                    .then(() => {
+                        setSelectedRemito(null);
+                        setIsLoading(false);
+                    })
+                    .catch(error => console.error("Error al actualizar remito:", error));
             })
-            .catch(error => console.error("Error al eliminar remito:", error));
+            .catch(error => console.error("Error al pesar remito:", error));
     }
 
     return (

@@ -16,19 +16,20 @@ const AltaColada = () => {
     const [selectedColada, setSelectedColada] = useState(null);
     const [coladaId, setColadaId] = useState(1);
 
+    const [tachos, setTachos] = useState([]);
     const [selectedTacho, setSelectedTacho] = useState(null);
     const [tachoId, setTachoId] = useState("");
+    const [tachoPeso, setTachoPeso] = useState("");
+    const imagenPorDefecto = notImage;
+    const [imagen, setImagen] = useState(imagenPorDefecto);
 
     const [isGenerating, setIsGenerating] = useState(false);
     const [isSending, setIsSending] = useState(false);
 
-    const [tachos, setTachos] = useState([]);
     const navigate = useNavigate();
 
-    const imagenPorDefecto = notImage;
-    const [imagen, setImagen] = useState(imagenPorDefecto);
-
     const prevTachosRef = useRef([]);
+
     useEffect(() => {
         const fetchTachosActivos = () => {
             axios.get(`${API_URL}/tachos/activos`)
@@ -48,6 +49,38 @@ const AltaColada = () => {
 
         return () => clearInterval(interval);
     }, []);
+
+    useEffect(() => {
+        if (selectedTacho) {
+            const tachoEncontrado = tachos.find(t => t.id === selectedTacho.id);
+            if (tachoEncontrado) {
+                setSelectedTacho(tachoEncontrado);
+                setImagen(tachoEncontrado.imagen);
+                setTachoId(tachoEncontrado.id);
+                setTachoPeso(tachoEncontrado.peso)
+            } else {
+                setSelectedTacho(null);
+                setImagen(imagenPorDefecto);
+                setTachoId(null);
+                setTachoPeso(null)
+            }
+        }
+    }, [tachos])
+
+    const handleSelectChange = (event) => {
+        const tacho = tachos.find(t => t.id === parseInt(event.target.value));
+        if (tacho && tacho.id) {
+            setSelectedTacho(tacho);
+            setImagen(tacho.imagen);
+            setTachoId(tacho.id);
+            setTachoPeso(tacho.peso)
+        } else {
+            setSelectedTacho(null);
+            setImagen(imagenPorDefecto);
+            setTachoId(null);
+            setTachoPeso(null)
+        }
+    };
 
     const handleCreateColada = (newColada) => {
         setColadas([...coladas, newColada]);
@@ -85,29 +118,17 @@ const AltaColada = () => {
         setColadaId((prevId) => prevId - 1);
     };
 
-    const handleSelectChange = (event) => {
-        const tacho = tachos.find(t => t.id === parseInt(event.target.value));
-        if (tacho && tacho.id) {
-            setSelectedTacho(tacho);
-            setImagen(tacho.imagen);
-            setTachoId(tacho.id);
-        } else {
-            setSelectedTacho(null);
-            setImagen(imagenPorDefecto);
-            setTachoId(null);
-        }
-    };
-
     const handleGenerate = async () => {
         setIsGenerating(true)
         const pesoTotal = coladas.reduce((total, colada) => total + colada.pesoTotal, 0);
-        const nuevoRemito = { coladas, pesoTotal, tachoId};
+        const nuevoRemito = { coladas, pesoTotal, tachoId, tachoPeso};
 
         axios.post(`${API_URL}/remitos/generar`, nuevoRemito)
             .then(() => {
                 setColadaId(1);
                 setColadas([]);
                 setTachoId("")
+                setTachoPeso("")
                 setSelectedTacho(null)
                 setImagen(imagenPorDefecto)
                 setIsGenerating(false)
@@ -116,29 +137,27 @@ const AltaColada = () => {
     };
 
     const handleDeploy = () => {
-        setIsSending(true)
+        setIsSending(true);
         const pesoTotal = coladas.reduce((total, colada) => total + colada.pesoTotal, 0);
-        const nuevoRemito = { coladas, pesoTotal, tachoId };
-        const remitoAPesar = { coladas, pesoTotal, tachoId };
+        const nuevoRemito = { coladas, pesoTotal, tachoId, tachoPeso };
 
         axios.post(`${API_URL}/remitos/enviar`, nuevoRemito)
-            .then(() => {
-                axios.post(`${API_URL}/pesajes/crear`, remitoAPesar )
+            .then((response) => {
+                const remitoId = response.data.id;
+
+                axios.post(`${API_URL}/pesajes/crearDesdeRemito/${remitoId}`)
                     .then(() => {
                         setColadaId(1);
                         setColadas([]);
-                        setTachoId("")
-                        setSelectedTacho(null)
-                        setImagen(imagenPorDefecto)
-                        setIsSending(false)
+                        setTachoId("");
+                        setTachoPeso("");
+                        setSelectedTacho(null);
+                        setImagen(imagenPorDefecto);
                     })
-                    .catch(error => {
-                        console.error("Error al enviar remito a pesar:", error);
-                    });
+                    .catch(error => console.error("Error al enviar remito:", error));
             })
-            .catch(error => {
-                console.error("Error al enviar remito:", error);
-            });
+            .catch(error => console.error("Error al generar remito:", error));
+        setIsSending(false);
     };
 
     return (
@@ -168,9 +187,9 @@ const AltaColada = () => {
             {coladas.length > 0 && (
                 <div>
                     <div className="input-container">
-                        <label>Tacho:</label>
+                        <label htmlFor="tacho-select">Tacho:</label>
                         <div style={{display: "flex", gap: "2vh", alignItems: "center"}}>
-                            <select style={{fontSize: "16px"}} value={selectedTacho?.id || ""}
+                            <select id="tacho-select" style={{fontSize: "16px"}} defaultValue=""
                                     onChange={handleSelectChange}>
                                 <option value="">Selecciona un tacho</option>
                                 {tachos.length > 0 ? (

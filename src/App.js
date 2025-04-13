@@ -7,7 +7,7 @@ import Pesaje from "./paginas/Control remito vs pesaje/Pesaje";
 
 function App() {
     return (
-        <Router basename="/Proyecto-Mereles">
+        <Router>
             <Routes>
                 <Route path="/" element={<LogIn />} />
                 <Route path="/home" element={<Home />} />

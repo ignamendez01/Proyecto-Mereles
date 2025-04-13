@@ -4,10 +4,13 @@
     <meta charset="utf-8">
     <title>Redirigiendo...</title>
     <script type="text/javascript">
-        // Redirige a la ruta de React con soporte para rutas anidadas
-        var pathname = window.location.pathname;
-        var newPath = pathname.replace("/Proyecto-Mereles", "");
-        window.location.replace("/Proyecto-Mereles/#" + newPath);
+        // Si alguien entra a una URL como /Proyecto-Mereles/home,
+        // redirigimos a /Proyecto-Mereles/#/home
+        (function () {
+            var path = window.location.pathname;
+            var redirectPath = path.replace("/Proyecto-Mereles", "/Proyecto-Mereles/#");
+            window.location.replace(redirectPath + window.location.search + window.location.hash);
+        })();
     </script>
 </head>
 <body>

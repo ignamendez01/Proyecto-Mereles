@@ -4,6 +4,8 @@ import {Button, ButtonContainer, PageContainer} from '../../../components/Styles
 import TablaColada from "../Common/TablaColada";
 import ColadaModal, {Img} from "../Common/ColadaModal";
 import notImage from "../../../resources/No_Image_Available.jpg";
+import RemitoDocumento from "../RemioDocumento";
+
 import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -160,6 +162,60 @@ const AltaColada = () => {
         setIsSending(false);
     };
 
+    const datos = {
+        numero: "00003-00 005962",
+        fecha: new Date().toLocaleDateString("es-AR"),
+        cliente: "",
+        domicilio: "",
+        iva: "",
+        cuit: "",
+        transportistaNombre: "",
+        transportistaDomicilio: "",
+        cuil: "",
+        items: coladas.map(colada => ({
+            notaPedido: "",
+            ordenFabric: colada.modeloId ?? "",
+            cantidad: colada.cantidad,
+            denominacion: "",
+            ordenCompra: colada.colada,
+            kgs: colada.peso,
+            observaciones: "",
+        }))
+    };
+
+    const remitoRef = useRef();
+
+    const handlePrintManual = () => {
+        const content = remitoRef.current;
+
+        if (!content) {
+            console.error("No se encontró el contenido del remito.");
+            return;
+        }
+
+        console.log(content.innerHTML); // Verifica si hay contenido aquí
+
+        const printWindow = window.open('', '', 'width=800,height=600');
+        if (printWindow) {
+            printWindow.document.open();
+            printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Remito</title>
+                </head>
+                <body>${content.innerHTML}</body>
+            </html>
+        `);
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 500);
+        }
+    };
+
+
     return (
         <PageContainer>
             <h2>Alta de Remitos</h2>
@@ -229,7 +285,16 @@ const AltaColada = () => {
                     disabled={coladas.length === 0 || !tachoId || isSending || isGenerating}>
                     {isSending ? "Enviando..." : "Enviar a producción"}
                 </Button>
+                <Button onClick={handlePrintManual} disabled={coladas.length === 0}>
+                    Imprimir
+                </Button>
             </ButtonContainer>
+            <div style={{position: "absolute", top: "-9999px", left: "-9999px"}}>
+                <div ref={remitoRef}>
+                    <RemitoDocumento datos={datos}/>
+                </div>
+            </div>
+
         </PageContainer>
     )
         ;

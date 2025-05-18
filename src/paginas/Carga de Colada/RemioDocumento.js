@@ -38,7 +38,7 @@ const RemitoDocumento = ({ datos }) => {
                     justifyContent: "space-between"
                 }}>
                     <div style={{
-                        backgroundColor: "black",
+                        backgroundColor: "#000000",
                         color: "white",
                         fontWeight: "bold",
                         textAlign: "center",
@@ -51,8 +51,8 @@ const RemitoDocumento = ({ datos }) => {
                     </div>
                     <div style={{display: "flex", justifyContent: "space-between", padding: "0 10px 10px"}}>
                         <div style={{fontSize: "12px", textAlign: "left"}}>
-                            CUIT: 30-12345678-9<br/>
-                            F. Fundación: 12/08/2000
+                            CUIT: <br/>
+                            F. Fundación:
                         </div>
                         <table border="1" cellPadding="3" style={{fontSize: "12px", textAlign: "center"}}>
                             <thead>
@@ -88,12 +88,12 @@ const RemitoDocumento = ({ datos }) => {
                     <div>
                         <strong>IVA:</strong>&nbsp;
                         {[
-                            "Responsable Inscripto",
-                            "Responsable No Inscripto",
-                            "No Responsable",
-                            "Monotributista",
+                            "Resp. Insc.",
+                            "Resp. No Insc.",
+                            "No Resp.",
+                            "Mono.",
                             "Exento",
-                            "Consumidor Final",
+                            "CF",
                             "SNC"
                         ].map((cond, i) => (
                             <span key={i} style={{marginRight: "12px"}}>
@@ -132,7 +132,7 @@ const RemitoDocumento = ({ datos }) => {
 
 
             {/* Línea intermedia */}
-            <div style={{display: "flex", marginTop: "10px", padding: "10px"}}>
+            <div style={{display: "flex", marginTop: "10px", paddingBottom: "10px"}}>
                 <div style={{border: "1px solid black", height: "35px", flex: 1, padding: "5px"}}>
                     <strong>Pesada Nº</strong>
                 </div>
@@ -188,7 +188,9 @@ const RemitoDocumento = ({ datos }) => {
                 <div style={{border: "1px solid black", height: "60px", flex: 0.6, padding: "5px"}}>
                     <strong>Total KGRS:</strong>
                     <br/>
-                    {datos.items.reduce((acc, i) => acc + (i.kgs * i.cantidad), 0).toFixed(2)}
+                    <p style={{paddingTop:"0.4px", fontSize:"18px", textAlign:"center", fontWeight:"bold"}}>
+                        {datos.items.reduce((acc, i) => acc + (i.kgs * i.cantidad), 0)}
+                    </p>
                 </div>
                 <div style={{border: "1px solid black", height: "60px", flex: 0.6, padding: "5px"}}>
                     <strong>Fecha de recepción:</strong>

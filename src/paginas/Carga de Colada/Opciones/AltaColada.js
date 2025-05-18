@@ -4,7 +4,6 @@ import {Button, ButtonContainer, PageContainer} from '../../../components/Styles
 import TablaColada from "../Common/TablaColada";
 import ColadaModal, {Img} from "../Common/ColadaModal";
 import notImage from "../../../resources/No_Image_Available.jpg";
-import RemitoDocumento from "../RemioDocumento";
 
 import axios from "axios";
 
@@ -26,7 +25,6 @@ const AltaColada = () => {
     const [imagen, setImagen] = useState(imagenPorDefecto);
 
     const [isGenerating, setIsGenerating] = useState(false);
-    const [isSending, setIsSending] = useState(false);
 
     const navigate = useNavigate();
 
@@ -138,88 +136,10 @@ const AltaColada = () => {
             .catch(error => console.error("Error al crear remito:", error));
     };
 
-    const handleDeploy = () => {
-        setIsSending(true);
-        const pesoTotal = coladas.reduce((total, colada) => total + colada.pesoTotal, 0);
-        const nuevoRemito = { coladas, pesoTotal, tachoId, tachoPeso };
-
-        axios.post(`${API_URL}/remitos/enviar`, nuevoRemito)
-            .then((response) => {
-                const remitoId = response.data.id;
-
-                axios.post(`${API_URL}/pesajes/crearDesdeRemito/${remitoId}`)
-                    .then(() => {
-                        setColadaId(1);
-                        setColadas([]);
-                        setTachoId("");
-                        setTachoPeso("");
-                        setSelectedTacho(null);
-                        setImagen(imagenPorDefecto);
-                    })
-                    .catch(error => console.error("Error al enviar remito:", error));
-            })
-            .catch(error => console.error("Error al generar remito:", error));
-        setIsSending(false);
-    };
-
-    const datos = {
-        numero: "00003-00 005962",
-        fecha: new Date().toLocaleDateString("es-AR"),
-        cliente: "",
-        domicilio: "",
-        iva: "",
-        cuit: "",
-        transportistaNombre: "",
-        transportistaDomicilio: "",
-        cuil: "",
-        items: coladas.map(colada => ({
-            notaPedido: "",
-            ordenFabric: colada.modeloId ?? "",
-            cantidad: colada.cantidad,
-            denominacion: "",
-            ordenCompra: colada.colada,
-            kgs: colada.peso,
-            observaciones: "",
-        }))
-    };
-
-    const remitoRef = useRef();
-
-    const handlePrintManual = () => {
-        const content = remitoRef.current;
-
-        if (!content) {
-            console.error("No se encontró el contenido del remito.");
-            return;
-        }
-
-        console.log(content.innerHTML); // Verifica si hay contenido aquí
-
-        const printWindow = window.open('', '', 'width=800,height=600');
-        if (printWindow) {
-            printWindow.document.open();
-            printWindow.document.write(`
-            <html>
-                <head>
-                    <title>Remito</title>
-                </head>
-                <body>${content.innerHTML}</body>
-            </html>
-        `);
-            printWindow.document.close();
-            printWindow.focus();
-            setTimeout(() => {
-                printWindow.print();
-                printWindow.close();
-            }, 500);
-        }
-    };
-
-
     return (
         <PageContainer>
             <h2>Alta de Remitos</h2>
-            <Button onClick={() => setIsModalOpen(true)} disabled={isSending || isGenerating}>
+            <Button onClick={() => setIsModalOpen(true)} disabled={isGenerating}>
                 Agregar Colada
             </Button>
 
@@ -272,28 +192,15 @@ const AltaColada = () => {
             }
 
             <ButtonContainer>
-                <Button onClick={() => navigate("/home")} disabled={isSending || isGenerating}>
+                <Button onClick={() => navigate("/home")} disabled={isGenerating}>
                     Volver
                 </Button>
                 <Button
                     onClick={handleGenerate}
-                    disabled={coladas.length === 0 || !tachoId || isSending || isGenerating}>
+                    disabled={coladas.length === 0 || !tachoId || isGenerating}>
                     {isGenerating ? "Generando..." : "Generar"}
                 </Button>
-                <Button
-                    onClick={handleDeploy}
-                    disabled={coladas.length === 0 || !tachoId || isSending || isGenerating}>
-                    {isSending ? "Enviando..." : "Enviar a producción"}
-                </Button>
-                <Button onClick={handlePrintManual} disabled={coladas.length === 0}>
-                    Imprimir
-                </Button>
             </ButtonContainer>
-            <div style={{position: "absolute", top: "-9999px", left: "-9999px"}}>
-                <div ref={remitoRef}>
-                    <RemitoDocumento datos={datos}/>
-                </div>
-            </div>
 
         </PageContainer>
     )

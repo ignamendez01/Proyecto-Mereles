@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import TablaRemito from "../Common/TablaRemito";
 import TablaEnviarRemito from "../Common/TablaEnviarRemito";
 import axios from "axios";
+import RemitoDocumento from "../RemioDocumento";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -11,8 +12,11 @@ const ResumenColada = () => {
     const navigate = useNavigate();
 
     const [remitos, setRemitos] = useState([]);
+    const [modelos, setModelos] = useState([]);
 
     const [selectedId, setSelectedId] = useState("");
+    const [datos, setDatos] = useState(null);
+
     const [fechaDesde, setFechaDesde] = useState("");
     const [fechaHasta, setFechaHasta] = useState("");
     const [remitosFiltrados, setRemitosFiltrados] = useState(remitos);
@@ -40,6 +44,29 @@ const ResumenColada = () => {
 
         fetchRemitosActivos();
         const interval = setInterval(fetchRemitosActivos, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    const prevModelosRef = useRef([]);
+
+    useEffect(() => {
+        const fetchModelosActivos = () => {
+            axios.get(`${API_URL}/modelos`)
+                .then(response => {
+                    const nuevosModelos = response.data;
+
+                    if (JSON.stringify(prevModelosRef.current) !== JSON.stringify(nuevosModelos)) {
+                        setModelos(response.data);
+                        console.log(response.data)
+                        prevModelosRef.current = nuevosModelos;
+                    }
+                })
+                .catch(error => console.error("Error al obtener modelos:", error));
+        };
+
+        fetchModelosActivos();
+        const interval = setInterval(fetchModelosActivos, 1000);
 
         return () => clearInterval(interval);
     }, []);
@@ -82,7 +109,37 @@ const ResumenColada = () => {
         if (!newId) {
             setRemitosFiltrados(remitos);
         } else {
-            setRemitosFiltrados(remitos.filter(remito => remito.id === parseInt(newId)));
+            const remitoSeleccionado = remitos.find(remito => remito.id === parseInt(newId));
+            setRemitosFiltrados([remitoSeleccionado]);
+
+            if (remitoSeleccionado) {
+                setDatos({
+                    numero: `${remitoSeleccionado.id}`,
+                    fecha: new Date().toLocaleDateString("es-AR"),
+                    cliente: "",
+                    domicilio: "",
+                    iva: "",
+                    cuit: "",
+                    transportistaNombre: "",
+                    transportistaDomicilio: "",
+                    cuil: "",
+                    items: (remitoSeleccionado.coladas || []).map(colada => {
+                        const modelo = modelos.find(m => m.id === colada.modeloId);
+                        console.log(modelo)
+                        return {
+                            notaPedido: "",
+                            ordenFabric: "",
+                            cantidad: colada.cantidad,
+                            denominacion: modelo.descripcion,
+                            ordenCompra: "",
+                            kgs: colada.peso,
+                            observaciones: "",
+                        };
+                    })
+                });
+            } else {
+                setDatos(null); // seguridad por si no se encuentra
+            }
         }
     };
 
@@ -117,13 +174,45 @@ const ResumenColada = () => {
             .finally(() => setEnviandoRemitoId(null));
     };
 
+    const remitoRef = useRef();
+
+    const handlePrintManual = () => {
+        const content = remitoRef.current;
+
+        if (!content) {
+            console.error("No se encontró el contenido del remito.");
+            return;
+        }
+
+        console.log(content.innerHTML); // Verifica si hay contenido aquí
+
+        const printWindow = window.open('', '', 'width=800,height=600');
+        if (printWindow) {
+            printWindow.document.open();
+            printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Remito</title>
+                </head>
+                <body>${content.innerHTML}</body>
+            </html>
+        `);
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 500);
+        }
+    };
+
     return (
         <PageContainer>
             <h2>Resumen de Remitos</h2>
 
             <div className="input-container">
                 <label htmlFor="model-select">Seleccionar Remito:</label>
-                <select value={selectedId} style={{ fontSize: "16px" }} onChange={handleSelect}>
+                <select value={selectedId} style={{fontSize: "16px"}} onChange={handleSelect}>
                     <option value="">Todos los remitos</option>
                     {remitoIds.length > 0 ? (
                         remitoIds.map((id) => (
@@ -142,7 +231,7 @@ const ResumenColada = () => {
                     <label>Desde: </label>
                     <input
                         type="date"
-                        style={{ marginRight: "20px" }}
+                        style={{marginRight: "20px"}}
                         value={fechaDesde}
                         onChange={(e) => setFechaDesde(e.target.value)}
                     />
@@ -150,7 +239,7 @@ const ResumenColada = () => {
                     <input
                         type="date"
                         value={fechaHasta}
-                        style={{ marginRight: "20px" }}
+                        style={{marginRight: "20px"}}
                         onChange={(e) => setFechaHasta(e.target.value)}
                     />
                     <Button
@@ -164,7 +253,7 @@ const ResumenColada = () => {
             {remitosFiltrados.map(remito => (
                 <div key={remito.id}>
                     {modoFiltrado ? (
-                        <TablaRemito remito={remito} />
+                        <TablaRemito remito={remito}/>
                     ) : (
                         <TablaEnviarRemito
                             remito={remito}
@@ -182,7 +271,18 @@ const ResumenColada = () => {
                 >
                     Volver
                 </Button>
+                {selectedId && (
+                    <Button onClick={handlePrintManual}>
+                        Imprimir
+                    </Button>
+                )}
             </ButtonContainer>
+            <div style={{position: "absolute", top: "-9999px", left: "-9999px"}}>
+                <div ref={remitoRef}>
+                    {datos && <RemitoDocumento datos={datos}/>}
+                </div>
+
+            </div>
         </PageContainer>
     );
 };

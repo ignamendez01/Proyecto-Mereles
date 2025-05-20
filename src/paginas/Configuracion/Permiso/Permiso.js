@@ -88,7 +88,7 @@ const Tacho = () => {
                 </div>
 
                 <div className="input-container">
-                    <label htmlFor="password">CONTRASEÑA:</label>
+                    <label className="password-label" htmlFor="password">CONTRASEÑA:</label>
                     <input
                         id="password"
                         name="password"

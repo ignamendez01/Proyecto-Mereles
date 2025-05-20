@@ -28,8 +28,14 @@ const LogIn = () => {
             navigate("/home");
         } catch (err) {
             console.error("Error al conectar con el servidor:", err);
-            if (err.response && err.response.status === 403) {
-                setError("Credenciales incorrectas.");
+            if (err.response) {
+                if (err.response.status === 401) {
+                    setError("Credenciales inválidas.");
+                } else if (err.response.status === 403) {
+                    setError("Acceso denegado.");
+                } else {
+                    setError("Error en la solicitud: " + err.response.statusText);
+                }
             } else {
                 setError("Error al conectar con el servidor.");
             }
@@ -50,7 +56,7 @@ const LogIn = () => {
             </div>
 
             <div className="input-container">
-                <label htmlFor="password">CONTRASEÑA:</label>
+                <label className="password-label" htmlFor="password">CONTRASEÑA:</label>
                 <input
                     id="password"
                     type="password"

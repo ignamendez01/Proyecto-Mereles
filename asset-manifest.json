@@ -1,16 +1,16 @@
 {
   "files": {
     "main.css": "/Proyecto-Mereles/static/css/main.3f84d199.css",
-    "main.js": "/Proyecto-Mereles/static/js/main.7e371ab8.js",
+    "main.js": "/Proyecto-Mereles/static/js/main.690acfb4.js",
     "static/js/488.3ea2789d.chunk.js": "/Proyecto-Mereles/static/js/488.3ea2789d.chunk.js",
     "static/media/No_Image_Available.jpg": "/Proyecto-Mereles/static/media/No_Image_Available.e1ce751ef1b590f719f9.jpg",
     "index.html": "/Proyecto-Mereles/index.html",
     "main.3f84d199.css.map": "/Proyecto-Mereles/static/css/main.3f84d199.css.map",
-    "main.7e371ab8.js.map": "/Proyecto-Mereles/static/js/main.7e371ab8.js.map",
+    "main.690acfb4.js.map": "/Proyecto-Mereles/static/js/main.690acfb4.js.map",
     "488.3ea2789d.chunk.js.map": "/Proyecto-Mereles/static/js/488.3ea2789d.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.3f84d199.css",
-    "static/js/main.7e371ab8.js"
+    "static/js/main.690acfb4.js"
   ]
 }

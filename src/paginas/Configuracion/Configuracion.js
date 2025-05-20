@@ -1,10 +1,23 @@
 import Navbar from "../../components/NavBar";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import Catalogo from "./Catalogo/Catalogo"
 import Tacho from "./Tacho/Tacho";
+import Permiso from "./Permiso/Permiso";
+import { jwtDecode } from "jwt-decode";
+import {useNavigate} from "react-router-dom";
 
 const Configuracion = () => {
+    const navigate = useNavigate();
+    const token = localStorage.getItem("token");
+    const decoded = jwtDecode(token);
+    const permiso = decoded.permiso;
     const [selectedOption, setSelectedOption] = useState(null);
+
+    useEffect(() => {
+        if (permiso !== "ADMIN" && permiso !== "FABRICA_A") {
+            navigate("/home");
+        }
+    }, [permiso, navigate]);
 
     const renderPage = () => {
         switch (selectedOption) {
@@ -12,6 +25,8 @@ const Configuracion = () => {
                 return <Catalogo />;
             case "option2":
                 return <Tacho />;
+            case "option3":
+                return <Permiso />;
             default:
                 return null;
         }

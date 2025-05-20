@@ -14,7 +14,13 @@ const ResumenCatalogo = () => {
 
     useEffect(() => {
         const fetchModelosActivos = () => {
-            axios.get(`${API_URL}/modelos/activos`)
+            const token = localStorage.getItem("token");
+
+            axios.get(`${API_URL}/modelos/activos`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
                 .then(response => {
                     const nuevosModelos = response.data;
 

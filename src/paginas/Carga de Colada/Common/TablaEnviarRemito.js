@@ -41,7 +41,7 @@ const TablaEnviarRemito = ({ remito, handleEnviarRemito, enviandoRemitoId }) => 
             {remito.coladas.map((colada, index) => (
                 <tr key={colada.colada}>
                     {index === 0 ? (
-                        <Td>
+                        <Td rowSpan={remito.coladas.length}>
                             {remito.id}
                         </Td>
                     ) : null}

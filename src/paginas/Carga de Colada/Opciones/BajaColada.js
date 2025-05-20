@@ -18,7 +18,13 @@ const BajaColada = () => {
 
     useEffect(() => {
         const fetchRemitosLocales = () => {
-            axios.get(`${API_URL}/remitos/locales`)
+            const token = localStorage.getItem("token");
+
+            axios.get(`${API_URL}/remitos/locales`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
                 .then(response => {
                     const nuevosRemitos = response.data;
 
@@ -64,12 +70,17 @@ const BajaColada = () => {
     const handleEliminar = () => {
         if (!selectedId) return;
         setIsLoading(true);
+        const token = localStorage.getItem("token");
 
-        axios.patch(`${API_URL}/remitos/${selectedId}/desactivar`)
+        axios.patch(`${API_URL}/remitos/${selectedId}/desactivar`, null, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
             .then(() => {
                 setSelectedId("");
-                setSelectedRemito(null)
-                setIsLoading(false)
+                setSelectedRemito(null);
+                setIsLoading(false);
             })
             .catch(error => console.error("Error al eliminar remito:", error));
     };

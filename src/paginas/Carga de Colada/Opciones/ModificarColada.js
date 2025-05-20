@@ -29,8 +29,14 @@ const ModificarColada = () => {
     const prevRemitosRef = useRef([]);
 
     useEffect(() => {
-        const fetchRemitosActivos = () => {
-            axios.get(`${API_URL}/remitos/locales`)
+        const fetchRemitosLocales = () => {
+            const token = localStorage.getItem("token");
+
+            axios.get(`${API_URL}/remitos/locales`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
                 .then(response => {
                     const nuevosRemitos = response.data;
 
@@ -42,8 +48,8 @@ const ModificarColada = () => {
                 .catch(error => console.error("Error al obtener remitos:", error));
         };
 
-        fetchRemitosActivos();
-        const interval = setInterval(fetchRemitosActivos, 1000);
+        fetchRemitosLocales();
+        const interval = setInterval(fetchRemitosLocales, 1000);
 
         return () => clearInterval(interval);
     }, []);
@@ -120,12 +126,18 @@ const ModificarColada = () => {
 
     useEffect(() => {
         const fetchTachosActivos = () => {
-            axios.get(`${API_URL}/tachos/activos`)
+            const token = localStorage.getItem("token");
+
+            axios.get(`${API_URL}/tachos/activos`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
                 .then(response => {
                     const nuevosTachos = response.data;
 
                     if (JSON.stringify(prevTachosRef.current) !== JSON.stringify(nuevosTachos)) {
-                        setTachos(response.data);
+                        setTachos(nuevosTachos);
                         prevTachosRef.current = nuevosTachos;
                     }
                 })
@@ -205,10 +217,11 @@ const ModificarColada = () => {
             console.error("No se ha seleccionado un remito para actualizar.");
             return;
         }
+
         setIsLoading(true);
+        const token = localStorage.getItem("token");
 
         const pesoTotal = localColadas.reduce((total, colada) => total + colada.pesoTotal, 0);
-
         const remitoUpdateDTO = {
             coladas: localColadas,
             pesoTotal: pesoTotal,
@@ -216,7 +229,11 @@ const ModificarColada = () => {
             pesoTacho: selectedTachoPeso
         };
 
-        axios.put(`${API_URL}/remitos/${selectedId}/actualizar`, remitoUpdateDTO)
+        axios.put(`${API_URL}/remitos/${selectedId}/actualizar`, remitoUpdateDTO, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
             .then(() => {
                 setSelectedId("");
                 setLocalColadas([]);

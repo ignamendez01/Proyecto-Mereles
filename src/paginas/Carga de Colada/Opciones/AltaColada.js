@@ -32,12 +32,18 @@ const AltaColada = () => {
 
     useEffect(() => {
         const fetchTachosActivos = () => {
-            axios.get(`${API_URL}/tachos/activos`)
+            const token = localStorage.getItem("token");
+
+            axios.get(`${API_URL}/tachos/activos`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
                 .then(response => {
                     const nuevosTachos = response.data;
 
                     if (JSON.stringify(prevTachosRef.current) !== JSON.stringify(nuevosTachos)) {
-                        setTachos(response.data);
+                        setTachos(nuevosTachos);
                         prevTachosRef.current = nuevosTachos;
                     }
                 })
@@ -119,19 +125,24 @@ const AltaColada = () => {
     };
 
     const handleGenerate = async () => {
-        setIsGenerating(true)
+        setIsGenerating(true);
         const pesoTotal = coladas.reduce((total, colada) => total + colada.pesoTotal, 0);
-        const nuevoRemito = { coladas, pesoTotal, tachoId, tachoPeso};
+        const nuevoRemito = { coladas, pesoTotal, tachoId, tachoPeso };
+        const token = localStorage.getItem("token");
 
-        axios.post(`${API_URL}/remitos/generar`, nuevoRemito)
+        axios.post(`${API_URL}/remitos/generar`, nuevoRemito, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
             .then(() => {
                 setColadaId(1);
                 setColadas([]);
-                setTachoId("")
-                setTachoPeso("")
-                setSelectedTacho(null)
-                setImagen(imagenPorDefecto)
-                setIsGenerating(false)
+                setTachoId("");
+                setTachoPeso("");
+                setSelectedTacho(null);
+                setImagen(imagenPorDefecto);
+                setIsGenerating(false);
             })
             .catch(error => console.error("Error al crear remito:", error));
     };

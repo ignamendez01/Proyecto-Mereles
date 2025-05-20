@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import './LogIn.css'
 
 const LogIn = () => {
@@ -8,11 +9,28 @@ const LogIn = () => {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
-    const handleLogin = () => {
-        if (username === "" || password === "") {
+    const handleLogin = async () => {
+        if (!username || !password) {
             setError("Por favor, completa todos los campos.");
-        }else{
+            return;
+        }
+
+        try {
+            const response = await axios.post("http://localhost:8080/usuarios/login", {
+                usuario: username,
+                password: password
+            });
+
+            const token = response.data;
+            localStorage.setItem("token", token);
             navigate("/home");
+        } catch (err) {
+            console.error("Error al conectar con el servidor:", err);
+            if (err.response && err.response.status === 403) {
+                setError("Credenciales incorrectas.");
+            } else {
+                setError("Error al conectar con el servidor.");
+            }
         }
     };
 
@@ -30,7 +48,7 @@ const LogIn = () => {
             </div>
 
             <div className="input-container">
-                <label className="password-label" htmlFor="password">CONTRASEÑA:</label>
+                <label htmlFor="password">CONTRASEÑA:</label>
                 <input
                     id="password"
                     type="password"
@@ -38,11 +56,10 @@ const LogIn = () => {
                     onChange={(e) => setPassword(e.target.value)}
                 />
             </div>
-            {error && <p>{error}</p>}
+            {error && <p style={{ color: "red" }}>{error}</p>}
             <button onClick={handleLogin}>Ingresar</button>
         </div>
     );
 };
 
 export default LogIn;
-

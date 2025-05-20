@@ -43,6 +43,7 @@ const AltaCatalogo = () => {
 
     const handleConfirm = async () => {
         setIsLoading(true);
+        const token = localStorage.getItem("token");
         try {
             for (const modelo of modelos) {
                 const formData = new FormData();
@@ -56,12 +57,18 @@ const AltaCatalogo = () => {
                 await axios.post(`${API_URL}/modelos`, formData, {
                     headers: {
                         "Content-Type": "multipart/form-data",
+                        Authorization: `Bearer ${token}`
                     },
                 });
             }
             setModelos([]);
         } catch (error) {
             console.error("Error al subir los modelos:", error);
+            if (axios.isAxiosError(error) && error.response?.status === 403) {
+                alert("No tenés permisos para realizar esta acción.");
+            } else {
+                alert("Ocurrió un error al subir los modelos.");
+            }
         } finally {
             setIsLoading(false);
         }

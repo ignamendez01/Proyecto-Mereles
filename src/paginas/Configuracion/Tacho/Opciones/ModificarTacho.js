@@ -19,12 +19,18 @@ const ModificarTacho = () => {
 
     useEffect(() => {
         const fetchTachosActivos = () => {
-            axios.get(`${API_URL}/tachos/activos`)
+            const token = localStorage.getItem("token");
+
+            axios.get(`${API_URL}/tachos/activos`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
                 .then(response => {
                     const nuevosTachos = response.data;
 
                     if (JSON.stringify(prevTachosRef.current) !== JSON.stringify(nuevosTachos)) {
-                        setTachos(response.data);
+                        setTachos(nuevosTachos);
                         prevTachosRef.current = nuevosTachos;
                     }
                 })
@@ -67,6 +73,7 @@ const ModificarTacho = () => {
         const updatedTachoData = { ...tachoData, id: selectedTacho.id };
         setIsModalOpen(false);
         setIsLoading(true);
+        const token = localStorage.getItem("token");
 
         try {
             const formData = new FormData();
@@ -77,7 +84,12 @@ const ModificarTacho = () => {
                 formData.append("imagen", updatedTachoData.imagen);
             }
 
-            axios.put(`${API_URL}/tachos/${selectedTacho.id}`, formData)
+            axios.put(`${API_URL}/tachos/${selectedTacho.id}`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    Authorization: `Bearer ${token}`
+                }
+            })
                 .then((response) => {
                     setSelectedTacho(updatedTachoData);
                     setIsLoading(false);

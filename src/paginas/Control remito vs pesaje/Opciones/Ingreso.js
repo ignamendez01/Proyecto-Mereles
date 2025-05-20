@@ -123,9 +123,15 @@ const Ingreso = () => {
 
     useEffect(() => {
         const fetchRemitosNoPesados = () => {
-            axios.get(`${API_URL}/pesajes/no-pesados`)
+            const token = localStorage.getItem("token");
+
+            axios.get(`${API_URL}/pesajes/no-pesados`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
                 .then(response => {
-                    setPesajes(response.data)
+                    setPesajes(response.data);
                 })
                 .catch(error => console.error("Error al obtener remitos:", error));
         };
@@ -147,9 +153,19 @@ const Ingreso = () => {
 
     function handlePesar() {
         setIsLoading(true);
-        axios.patch(`${API_URL}/pesajes/${selectedRemito.id}/pesar`)
+        const token = localStorage.getItem("token");
+
+        axios.patch(`${API_URL}/pesajes/${selectedRemito.id}/pesar`, null, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
             .then(() => {
-                axios.patch(`${API_URL}/remitos/${selectedRemito.remitoId}/pesar`)
+                axios.patch(`${API_URL}/remitos/${selectedRemito.remitoId}/pesar`, null, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                })
                     .then(() => {
                         setSelectedRemito(null);
                         setIsLoading(false);

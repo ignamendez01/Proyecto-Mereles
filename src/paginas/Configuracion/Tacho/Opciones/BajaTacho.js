@@ -17,12 +17,18 @@ const BajaTacho = () => {
 
     useEffect(() => {
         const fetchTachosActivos = () => {
-            axios.get(`${API_URL}/tachos/activos`)
+            const token = localStorage.getItem("token");
+
+            axios.get(`${API_URL}/tachos/activos`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
                 .then(response => {
                     const nuevosTachos = response.data;
 
                     if (JSON.stringify(prevTachosRef.current) !== JSON.stringify(nuevosTachos)) {
-                        setTachos(response.data);
+                        setTachos(nuevosTachos);
                         prevTachosRef.current = nuevosTachos;
                     }
                 })
@@ -54,7 +60,13 @@ const BajaTacho = () => {
     const handleEliminar = () => {
         if (!selectedTacho) return;
         setIsLoading(true);
-        axios.patch(`${API_URL}/tachos/${selectedTacho.id}/desactivar`)
+        const token = localStorage.getItem("token");
+
+        axios.patch(`${API_URL}/tachos/${selectedTacho.id}/desactivar`, null, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
             .then(() => {
                 setSelectedTacho(null);
                 setIsLoading(false);

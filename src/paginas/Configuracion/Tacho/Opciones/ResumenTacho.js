@@ -14,12 +14,18 @@ const ResumenTacho = () => {
 
     useEffect(() => {
         const fetchTachosActivos = () => {
-            axios.get(`${API_URL}/tachos/activos`)
+            const token = localStorage.getItem("token");
+
+            axios.get(`${API_URL}/tachos/activos`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
                 .then(response => {
                     const nuevosTachos = response.data;
 
                     if (JSON.stringify(prevTachosRef.current) !== JSON.stringify(nuevosTachos)) {
-                        setTachosActivos(response.data);
+                        setTachosActivos(nuevosTachos);
                         prevTachosRef.current = nuevosTachos;
                     }
                 })

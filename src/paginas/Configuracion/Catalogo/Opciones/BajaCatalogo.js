@@ -17,7 +17,13 @@ const BajaCatalogo = () => {
 
     useEffect(() => {
         const fetchModelosActivos = () => {
-            axios.get(`${API_URL}/modelos/activos`)
+            const token = localStorage.getItem("token");
+
+            axios.get(`${API_URL}/modelos/activos`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
                 .then(response => {
                     const nuevosModelos = response.data;
 
@@ -54,7 +60,13 @@ const BajaCatalogo = () => {
     const handleEliminar = () => {
         if (!selectedModel) return;
         setIsLoading(true);
-        axios.patch(`${API_URL}/modelos/${selectedModel.id}/desactivar`)
+        const token = localStorage.getItem("token");
+
+        axios.patch(`${API_URL}/modelos/${selectedModel.id}/desactivar`, null, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
             .then(() => {
                 setSelectedModel(null);
                 setIsLoading(false);

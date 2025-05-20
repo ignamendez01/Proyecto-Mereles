@@ -13,7 +13,13 @@ const ResumenPesaje = () => {
 
     useEffect(() => {
         const fetchRemitos = () => {
-            axios.get(`${API_URL}/pesajes`)
+            const token = localStorage.getItem("token");
+
+            axios.get(`${API_URL}/pesajes`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
                 .then(response => {
                     setPesajes(response.data);
                 })

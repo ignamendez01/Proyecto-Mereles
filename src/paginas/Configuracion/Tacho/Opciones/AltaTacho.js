@@ -45,6 +45,7 @@ const AltaTacho = () => {
 
     const handleConfirm = async () => {
         setIsLoading(true);
+        const token = localStorage.getItem("token");
         try {
             for (const tacho of tachos) {
                 const formData = new FormData();
@@ -58,12 +59,18 @@ const AltaTacho = () => {
                 await axios.post(`${API_URL}/tachos`, formData, {
                     headers: {
                         "Content-Type": "multipart/form-data",
+                        Authorization: `Bearer ${token}`
                     },
                 });
             }
             setTachos([]);
         } catch (error) {
             console.error("Error al subir los tachos:", error);
+            if (axios.isAxiosError(error) && error.response?.status === 403) {
+                alert("No tenés permisos para realizar esta acción.");
+            } else {
+                alert("Ocurrió un error al subir los tachos.");
+            }
         } finally {
             setIsLoading(false);
         }

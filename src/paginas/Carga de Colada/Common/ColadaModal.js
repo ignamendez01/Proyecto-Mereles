@@ -57,12 +57,18 @@ const ColadaModal = ({ isOpen, onClose, onSubmit, coladaData, localId, title }) 
 
     useEffect(() => {
         const fetchModelosActivos = () => {
-            axios.get(`${API_URL}/modelos/activos`)
+            const token = localStorage.getItem("token");
+
+            axios.get(`${API_URL}/modelos/activos`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
                 .then(response => {
                     const nuevosModelos = response.data;
 
                     if (JSON.stringify(prevModelosRef.current) !== JSON.stringify(nuevosModelos)) {
-                        setModelos(response.data);
+                        setModelos(nuevosModelos);
                         prevModelosRef.current = nuevosModelos;
                     }
                 })

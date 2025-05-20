@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import TablaRemito from "../Common/TablaRemito";
 import TablaEnviarRemito from "../Common/TablaEnviarRemito";
 import axios from "axios";
-import RemitoDocumento from "../RemioDocumento";
+import RemitoDocumento from "../RemitoDocumento";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -30,7 +30,13 @@ const ResumenColada = () => {
 
     useEffect(() => {
         const fetchRemitosActivos = () => {
-            axios.get(`${API_URL}/remitos/activos`)
+            const token = localStorage.getItem("token");
+
+            axios.get(`${API_URL}/remitos/activos`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
                 .then(response => {
                     const nuevosRemitos = response.data;
 
@@ -52,13 +58,18 @@ const ResumenColada = () => {
 
     useEffect(() => {
         const fetchModelosActivos = () => {
-            axios.get(`${API_URL}/modelos`)
+            const token = localStorage.getItem("token");
+
+            axios.get(`${API_URL}/modelos`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
                 .then(response => {
                     const nuevosModelos = response.data;
 
                     if (JSON.stringify(prevModelosRef.current) !== JSON.stringify(nuevosModelos)) {
                         setModelos(response.data);
-                        console.log(response.data)
                         prevModelosRef.current = nuevosModelos;
                     }
                 })
@@ -163,12 +174,20 @@ const ResumenColada = () => {
     const handleEnviarRemito = (remito) => {
         const remitoId = remito.id;
         setEnviandoRemitoId(remito.id);
+        const token = localStorage.getItem("token");
 
-        axios.patch(`${API_URL}/remitos/${remitoId}/enviar`)
+        axios.patch(`${API_URL}/remitos/${remitoId}/enviar`, null, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
             .then(() => {
-                axios.post(`${API_URL}/pesajes/crearDesdeRemito/${remitoId}`)
-                    .catch(error => console.error("Error al crear pesaje desde remito:", error));
-                setSelectedId("")
+                axios.post(`${API_URL}/pesajes/crearDesdeRemito/${remitoId}`, null, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }).catch(error => console.error("Error al crear pesaje desde remito:", error));
+                setSelectedId("");
             })
             .catch(error => console.error("Error al enviar remito:", error))
             .finally(() => setEnviandoRemitoId(null));

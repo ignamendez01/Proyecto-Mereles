@@ -4,16 +4,17 @@ import Home from './paginas/Home';
 import Configuracion from './paginas/Configuracion/Configuracion';
 import Colada from "./paginas/Carga de Colada/Colada";
 import Pesaje from "./paginas/Control remito vs pesaje/Pesaje";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
     return (
         <Router>
             <Routes>
                 <Route path="/" element={<LogIn />} />
-                <Route path="/home" element={<Home />} />
-                <Route path="/configuracion" element={<Configuracion />} />
-                <Route path="/carga-colada" element={<Colada />} />
-                <Route path="/control-remito" element={<Pesaje />} />
+                <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+                <Route path="/configuracion" element={<ProtectedRoute><Configuracion /></ProtectedRoute>} />
+                <Route path="/carga-colada" element={<ProtectedRoute><Colada /></ProtectedRoute>} />
+                <Route path="/control-remito" element={<ProtectedRoute><Pesaje /></ProtectedRoute>} />
             </Routes>
         </Router>
     );

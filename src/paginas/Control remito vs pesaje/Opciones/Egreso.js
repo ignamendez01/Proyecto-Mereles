@@ -15,9 +15,19 @@ const TablaDetallesRemitos = ({ remito, setLoading }) => {
     const handleEgresar = () => {
         setIsEgresando(true);
         setLoading(true);
-        axios.patch(`${API_URL}/pesajes/${remito.id}/egresar`)
+        const token = localStorage.getItem("token");
+
+        axios.patch(`${API_URL}/pesajes/${remito.id}/egresar`, null, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
             .then(() => {
-                axios.patch(`${API_URL}/remitos/${remito.remitoId}/egresar`)
+                axios.patch(`${API_URL}/remitos/${remito.remitoId}/egresar`, null, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                })
                     .then(() => {
                         setIsEgresando(false);
                         setLoading(false);
@@ -97,7 +107,13 @@ const Egreso = () => {
 
     useEffect(() => {
         const fetchRemitosPesadosNoEgresados = () => {
-            axios.get(`${API_URL}/pesajes/pesados-no-egresados`)
+            const token = localStorage.getItem("token");
+
+            axios.get(`${API_URL}/pesajes/pesados-no-egresados`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
                 .then(response => {
                     setRemitosFiltrados(response.data);
                 })

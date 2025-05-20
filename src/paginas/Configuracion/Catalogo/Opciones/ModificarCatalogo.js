@@ -19,7 +19,13 @@ const ModificarCatalogo = () => {
 
     useEffect(() => {
         const fetchModelosActivos = () => {
-            axios.get(`${API_URL}/modelos/activos`)
+            const token = localStorage.getItem("token");
+
+            axios.get(`${API_URL}/modelos/activos`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
                 .then(response => {
                     const nuevosModelos = response.data;
 
@@ -67,6 +73,7 @@ const ModificarCatalogo = () => {
         const updatedModelData = { ...modelData, id: selectedModel.id };
         setIsModalOpen(false);
         setIsLoading(true);
+        const token = localStorage.getItem("token");
 
         try {
             const formData = new FormData();
@@ -77,7 +84,12 @@ const ModificarCatalogo = () => {
                 formData.append("imagen", updatedModelData.imagen);
             }
 
-            axios.put(`${API_URL}/modelos/${selectedModel.id}`, formData)
+            axios.put(`${API_URL}/modelos/${selectedModel.id}`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    Authorization: `Bearer ${token}`
+                }
+            })
                 .then((response) => {
                     setSelectedModel(updatedModelData);
                     setIsLoading(false);
@@ -90,6 +102,7 @@ const ModificarCatalogo = () => {
             console.error("Error al actualizar el modelo:", error);
         }
     };
+
 
     return (
         <PageContainer>

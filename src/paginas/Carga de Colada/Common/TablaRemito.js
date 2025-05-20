@@ -32,9 +32,13 @@ const TablaRemito = ({ remito }) => {
             </tr>
             </thead>
             <tbody>
-            {remito.coladas.map((colada) => (
+            {remito.coladas.map((colada, index) => (
                 <tr key={colada.colada}>
-                    <Td>{remito.id}</Td>
+                    {index === 0 ? (
+                        <Td rowSpan={remito.coladas.length}>
+                            {remito.id}
+                        </Td>
+                    ) : null}
                     <Td>{colada.modeloId}</Td>
                     <Td>
                         <Img src={colada.imagen} alt="Modelo" />

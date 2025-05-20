@@ -3,6 +3,8 @@ import axios from "axios";
 import {useNavigate} from "react-router-dom";
 import {jwtDecode} from "jwt-decode";
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const Tacho = () => {
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
@@ -44,9 +46,9 @@ const Tacho = () => {
         const token = localStorage.getItem("token");
 
         try {
-            await axios.post('http://localhost:8080/usuarios/register', formData, {
+            await axios.post(`${API_URL}/usuarios/register`, formData, {
                 headers: {
-                    Authorization: `Bearer ${token}` // 🔒 Se envía el token en el header
+                    Authorization: `Bearer ${token}`
                 }
             });
             setMensaje('Usuario registrado exitosamente');

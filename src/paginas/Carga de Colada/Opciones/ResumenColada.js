@@ -57,7 +57,7 @@ const ResumenColada = () => {
     const prevModelosRef = useRef([]);
 
     useEffect(() => {
-        const fetchModelosActivos = () => {
+        const fetchModelos = () => {
             const token = localStorage.getItem("token");
 
             axios.get(`${API_URL}/modelos`, {
@@ -76,8 +76,8 @@ const ResumenColada = () => {
                 .catch(error => console.error("Error al obtener modelos:", error));
         };
 
-        fetchModelosActivos();
-        const interval = setInterval(fetchModelosActivos, 1000);
+        fetchModelos();
+        const interval = setInterval(fetchModelos, 1000);
 
         return () => clearInterval(interval);
     }, []);

@@ -88,7 +88,7 @@ const menuItems = [
     { name: "FACTURACIÓN Y OTROS", path: "/home" },
     { name: "COBROS", path: "/home" },
     { name: "REPORTES", path: "/home" },
-    { name: "ESTADISTICAS", path: "/home" },
+    { name: "ESTADISTICAS", path: "/estadisticas" },
     { name: "CONFIGURACIÓN", path: "/configuracion" },
 ];
 

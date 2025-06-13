@@ -4,38 +4,13 @@ import {useNavigate} from "react-router-dom";
 import {Button, ButtonContainer, PageContainer} from "../../../components/Styles";
 import {TdFooter, TdFooterTotal} from "./Ingreso";
 import axios from "axios";
+import {useWebSocketPesajes} from "../../../components/hooks/useWebSocketPesajes";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-const TablaDetallesRemitos = ({ remito, setLoading }) => {
-    const [isEgresando, setIsEgresando] = useState(false);
+const TablaDetallesRemitos = ({ remito, onEgresar, isEgresando }) => {
     const totalPeso = remito.pesoTotal;
     const tachoPeso = remito.tachoPeso;
-
-    const handleEgresar = () => {
-        setIsEgresando(true);
-        setLoading(true);
-        const token = localStorage.getItem("token");
-
-        axios.patch(`${API_URL}/pesajes/${remito.id}/egresar`, null, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        })
-            .then(() => {
-                axios.patch(`${API_URL}/remitos/${remito.remitoId}/egresar`, null, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                })
-                    .then(() => {
-                        setIsEgresando(false);
-                        setLoading(false);
-                    })
-                    .catch(error => console.error("Error al actualizar remito:", error));
-            })
-            .catch(error => console.error("Error al egresar remito:", error));
-    };
 
     return (
         <Table>
@@ -71,8 +46,8 @@ const TablaDetallesRemitos = ({ remito, setLoading }) => {
                     <Td>{colada.fecha}</Td>
                     {index === 0 ? (
                         <Td rowSpan={remito.coladas.length}>
-                            <Button onClick={handleEgresar} disabled={isEgresando}>
-                                {isEgresando ? "Egresando..." : "Egresar"}
+                            <Button onClick={() => onEgresar(remito)} disabled={isEgresando}>
+                            {isEgresando ? "Egresando..." : "Egresar"}
                             </Button>
                         </Td>
                     ) : null}
@@ -104,27 +79,45 @@ const Egreso = () => {
 
     const [remitosFiltrados, setRemitosFiltrados] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [enviandoRemitoId, setEnviandoRemitoId] = useState(null);
+
+    const fetchRemitosPesadosNoEgresados = () => {
+        const token = localStorage.getItem("token");
+        axios.get(`${API_URL}/pesajes/pesados-no-egresados`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(response => setRemitosFiltrados(response.data))
+            .catch(error => console.error("Error al obtener remitos:", error));
+    };
 
     useEffect(() => {
-        const fetchRemitosPesadosNoEgresados = () => {
-            const token = localStorage.getItem("token");
-
-            axios.get(`${API_URL}/pesajes/pesados-no-egresados`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            })
-                .then(response => {
-                    setRemitosFiltrados(response.data);
-                })
-                .catch(error => console.error("Error al obtener remitos:", error));
-        };
-
         fetchRemitosPesadosNoEgresados();
-        const interval = setInterval(fetchRemitosPesadosNoEgresados, 1000);
-
-        return () => clearInterval(interval);
     }, []);
+
+    useWebSocketPesajes(fetchRemitosPesadosNoEgresados);
+
+    const handleEgresar = (remito) => {
+        setEnviandoRemitoId(remito.id);
+        setIsLoading(true);
+        const token = localStorage.getItem("token");
+
+        axios.patch(`${API_URL}/pesajes/${remito.id}/egresar`, null, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(() => {
+                return axios.patch(`${API_URL}/remitos/${remito.remitoId}/egresar`, null, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+            })
+            .then(() => {
+                fetchRemitosPesadosNoEgresados(); // ✅ actualiza la lista
+            })
+            .catch(error => console.error("Error al egresar remito:", error))
+            .finally(() => {
+                setEnviandoRemitoId(null);
+                setIsLoading(false);
+            });
+    };
 
     return (
         <PageContainer>
@@ -134,7 +127,9 @@ const Egreso = () => {
                     <div key={remito.id}>
                         <TablaDetallesRemitos
                             remito={remito}
-                            setLoading={setIsLoading} />
+                            onEgresar={handleEgresar}
+                            isEgresando={enviandoRemitoId === remito.id}
+                        />
                     </div>
                 ))
             ) : (

@@ -8,6 +8,10 @@ import VistaUsuarios from "./vistas/VistaUsuario";
 import VistaModelo from "./vistas/VistaModelo";
 import VistaTacho from "./vistas/VistaTacho";
 import VistaRemito from "./vistas/VistaRemito";
+import {useWebSocketModelos} from "../../components/hooks/useWebSocketModelos";
+import {useWebSocketTachos} from "../../components/hooks/useWebSocketTachos";
+import {useWebSocketRemitos} from "../../components/hooks/useWebSocketRemitos";
+import {useWebSocketUsuarios} from "../../components/hooks/useWebSocketUsuarios";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -43,106 +47,65 @@ const Estadistica = () => {
         }
     }, [permiso, navigate]);
 
-    const prevUsuariosRef = useRef([]);
+    const fetchUsuarios = () => {
+        const token = localStorage.getItem("token");
+        axios.get(`${API_URL}/usuarios`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(response => setUsuarios(response.data))
+            .catch(error => console.error("Error al obtener usuarios:", error));
+    };
+
     useEffect(() => {
-        const fetchUsuarios = () => {
-            axios.get(`${API_URL}/usuarios`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            })
-                .then(response => {
-                    const nuevosUsuarios = response.data;
-
-                    if (JSON.stringify(prevUsuariosRef.current) !== JSON.stringify(nuevosUsuarios)) {
-                        setUsuarios(nuevosUsuarios);
-                        prevUsuariosRef.current = nuevosUsuarios;
-                    }
-                })
-                .catch(error => console.error("Error al obtener usuarios:", error));
-        };
-
         fetchUsuarios();
-        const interval = setInterval(fetchUsuarios, 1000);
-
-        return () => clearInterval(interval);
     }, []);
 
-    const prevModelosRef = useRef([]);
+    useWebSocketUsuarios(fetchUsuarios);
+
+    const fetchModelos = () => {
+        const token = localStorage.getItem("token");
+        axios.get(`${API_URL}/modelos`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(response => setModelos(response.data))
+            .catch(error => console.error("Error al obtener modelos:", error));
+    };
+
     useEffect(() => {
-        const fetchModelos = () => {
-            axios.get(`${API_URL}/modelos`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            })
-                .then(response => {
-                    const nuevosModelos = response.data;
-
-                    if (JSON.stringify(prevModelosRef.current) !== JSON.stringify(nuevosModelos)) {
-                        setModelos(response.data);
-                        prevModelosRef.current = nuevosModelos;
-                    }
-                })
-                .catch(error => console.error("Error al obtener modelos:", error));
-        };
-
         fetchModelos();
-        const interval = setInterval(fetchModelos, 1000);
-
-        return () => clearInterval(interval);
     }, []);
 
-    const prevTachosRef = useRef([]);
+    useWebSocketModelos(fetchModelos);
+
+    const fetchTachos = () => {
+        const token = localStorage.getItem("token");
+        axios.get(`${API_URL}/tachos`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(response => setTachos(response.data))
+            .catch(error => console.error("Error al obtener tachos:", error));
+    };
+
     useEffect(() => {
-        const fetchTachos = () => {
-            axios.get(`${API_URL}/tachos`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            })
-                .then(response => {
-                    const nuevosTachos = response.data;
-
-                    if (JSON.stringify(prevTachosRef.current) !== JSON.stringify(nuevosTachos)) {
-                        setTachos(nuevosTachos);
-                        prevTachosRef.current = nuevosTachos;
-                    }
-                })
-                .catch(error => console.error("Error al obtener tachos:", error));
-        };
-
         fetchTachos();
-        const interval = setInterval(fetchTachos, 1000);
-
-        return () => clearInterval(interval);
     }, []);
 
+    useWebSocketTachos(fetchTachos);
 
-    const prevRemitosRef = useRef([]);
+    const fetchRemitos = () => {
+        const token = localStorage.getItem("token");
+        axios.get(`${API_URL}/remitos`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(response => setRemitos(response.data))
+            .catch(error => console.error("Error al obtener remitos:", error));
+    };
+
     useEffect(() => {
-        const fetchRemitos = () => {
-            axios.get(`${API_URL}/remitos`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            })
-                .then(response => {
-                    const nuevosRemitos = response.data;
-
-                    if (JSON.stringify(prevRemitosRef.current) !== JSON.stringify(nuevosRemitos)) {
-                        setRemitos(response.data);
-                        prevRemitosRef.current = nuevosRemitos;
-                    }
-                })
-                .catch(error => console.error("Error al obtener remitos:", error));
-        };
-
         fetchRemitos();
-        const interval = setInterval(fetchRemitos, 1000);
-
-        return () => clearInterval(interval);
     }, []);
+
+    useWebSocketRemitos(fetchRemitos);
 
     const calcularTotalKg = (remitos) => {
         let total = 0;

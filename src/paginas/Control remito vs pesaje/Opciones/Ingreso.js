@@ -5,6 +5,7 @@ import {useNavigate} from "react-router-dom";
 import styled from "styled-components";
 import CheckBoxOutlinedIcon from '@mui/icons-material/CheckBoxOutlined';
 import axios from "axios";
+import {useWebSocketPesajes} from "../../../components/hooks/useWebSocketPesajes";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -121,26 +122,20 @@ const Ingreso = () => {
     const [pesajes, setPesajes] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
+    const fetchRemitosNoPesados = () => {
+        const token = localStorage.getItem("token");
+        axios.get(`${API_URL}/pesajes/no-pesados`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(response => setPesajes(response.data))
+            .catch(error => console.error("Error al obtener remitos:", error));
+    };
+
     useEffect(() => {
-        const fetchRemitosNoPesados = () => {
-            const token = localStorage.getItem("token");
-
-            axios.get(`${API_URL}/pesajes/no-pesados`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            })
-                .then(response => {
-                    setPesajes(response.data);
-                })
-                .catch(error => console.error("Error al obtener remitos:", error));
-        };
-
         fetchRemitosNoPesados();
-        const interval = setInterval(fetchRemitosNoPesados, 1000);
-
-        return () => clearInterval(interval);
     }, []);
+
+    useWebSocketPesajes(fetchRemitosNoPesados);
 
     useEffect(() => {
         if (selectedRemito){
@@ -169,6 +164,7 @@ const Ingreso = () => {
                     .then(() => {
                         setSelectedRemito(null);
                         setIsLoading(false);
+                        fetchRemitosNoPesados();
                     })
                     .catch(error => console.error("Error al actualizar remito:", error));
             })

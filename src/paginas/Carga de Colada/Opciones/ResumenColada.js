@@ -5,6 +5,8 @@ import TablaRemito from "../Common/TablaRemito";
 import TablaEnviarRemito from "../Common/TablaEnviarRemito";
 import axios from "axios";
 import RemitoDocumento from "../RemitoDocumento";
+import {useWebSocketModelos} from "../../../components/hooks/useWebSocketModelos";
+import {useWebSocketRemitos} from "../../../components/hooks/useWebSocketRemitos";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -26,61 +28,35 @@ const ResumenColada = () => {
 
     const remitoIds = remitos.map(remito => remito.id);
 
-    const prevRemitosRef = useRef([]);
+    const fetchRemitosActivos = () => {
+        const token = localStorage.getItem("token");
+        axios.get(`${API_URL}/remitos/activos`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(response => setRemitos(response.data))
+            .catch(error => console.error("Error al obtener remitos:", error));
+    };
 
     useEffect(() => {
-        const fetchRemitosActivos = () => {
-            const token = localStorage.getItem("token");
-
-            axios.get(`${API_URL}/remitos/activos`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            })
-                .then(response => {
-                    const nuevosRemitos = response.data;
-
-                    if (JSON.stringify(prevRemitosRef.current) !== JSON.stringify(nuevosRemitos)) {
-                        setRemitos(response.data);
-                        prevRemitosRef.current = nuevosRemitos;
-                    }
-                })
-                .catch(error => console.error("Error al obtener remitos:", error));
-        };
-
         fetchRemitosActivos();
-        const interval = setInterval(fetchRemitosActivos, 1000);
-
-        return () => clearInterval(interval);
     }, []);
 
-    const prevModelosRef = useRef([]);
+    useWebSocketRemitos(fetchRemitosActivos);
+
+    const fetchModelos = () => {
+        const token = localStorage.getItem("token");
+        axios.get(`${API_URL}/modelos`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(response => setModelos(response.data))
+            .catch(error => console.error("Error al obtener modelos:", error));
+    };
 
     useEffect(() => {
-        const fetchModelos = () => {
-            const token = localStorage.getItem("token");
-
-            axios.get(`${API_URL}/modelos`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            })
-                .then(response => {
-                    const nuevosModelos = response.data;
-
-                    if (JSON.stringify(prevModelosRef.current) !== JSON.stringify(nuevosModelos)) {
-                        setModelos(response.data);
-                        prevModelosRef.current = nuevosModelos;
-                    }
-                })
-                .catch(error => console.error("Error al obtener modelos:", error));
-        };
-
         fetchModelos();
-        const interval = setInterval(fetchModelos, 1000);
-
-        return () => clearInterval(interval);
     }, []);
+
+    useWebSocketModelos(fetchModelos);
 
     useEffect(() => {
         if(selectedId) {
@@ -188,6 +164,7 @@ const ResumenColada = () => {
                     }
                 }).catch(error => console.error("Error al crear pesaje desde remito:", error));
                 setSelectedId("");
+                fetchRemitosActivos();
             })
             .catch(error => console.error("Error al enviar remito:", error))
             .finally(() => setEnviandoRemitoId(null));
@@ -203,7 +180,7 @@ const ResumenColada = () => {
             return;
         }
 
-        console.log(content.innerHTML); // Verifica si hay contenido aquí
+        console.log(content.innerHTML);
 
         const printWindow = window.open('', '', 'width=800,height=600');
         if (printWindow) {

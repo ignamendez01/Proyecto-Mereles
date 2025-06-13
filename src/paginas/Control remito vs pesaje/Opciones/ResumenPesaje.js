@@ -3,6 +3,7 @@ import {Button, ButtonContainer, PageContainer} from "../../../components/Styles
 import React, {useEffect, useState} from "react";
 import axios from "axios";
 import {useNavigate} from "react-router-dom";
+import {useWebSocketPesajes} from "../../../components/hooks/useWebSocketPesajes";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -11,26 +12,20 @@ const ResumenPesaje = () => {
 
     const [pesajes, setPesajes] = useState([]);
 
+    const fetchRemitos = () => {
+        const token = localStorage.getItem("token");
+        axios.get(`${API_URL}/pesajes`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(response => setPesajes(response.data))
+            .catch(error => console.error("Error al obtener remitos:", error));
+    };
+
     useEffect(() => {
-        const fetchRemitos = () => {
-            const token = localStorage.getItem("token");
-
-            axios.get(`${API_URL}/pesajes`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            })
-                .then(response => {
-                    setPesajes(response.data);
-                })
-                .catch(error => console.error("Error al obtener remitos:", error));
-        };
-
         fetchRemitos();
-        const interval = setInterval(fetchRemitos, 1000);
-
-        return () => clearInterval(interval);
     }, []);
+
+    useWebSocketPesajes(fetchRemitos);
 
     return (
         <PageContainer>

@@ -1,8 +1,9 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {PageContainer, ButtonContainer, Button} from '../../../../components/Styles';
 import Tabla from "../../Common/Tabla";
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
+import {useWebSocketModelos} from "../../../../components/hooks/useWebSocketModelos";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -10,33 +11,20 @@ const ResumenCatalogo = () => {
     const [modelosActivos, setModelosActivos] = useState([]);
     const navigate = useNavigate();
 
-    const prevModelosRef = useRef([]);
+    const fetchModelosActivos = () => {
+        const token = localStorage.getItem("token");
+        axios.get(`${API_URL}/modelos/activos`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(response => setModelosActivos(response.data))
+            .catch(error => console.error("Error al obtener modelos:", error));
+    };
 
     useEffect(() => {
-        const fetchModelosActivos = () => {
-            const token = localStorage.getItem("token");
-
-            axios.get(`${API_URL}/modelos/activos`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            })
-                .then(response => {
-                    const nuevosModelos = response.data;
-
-                    if (JSON.stringify(prevModelosRef.current) !== JSON.stringify(nuevosModelos)) {
-                        setModelosActivos(nuevosModelos);
-                        prevModelosRef.current = nuevosModelos;
-                    }
-                })
-                .catch(error => console.error("Error al obtener modelos:", error));
-        };
-
         fetchModelosActivos();
-        const interval = setInterval(fetchModelosActivos, 1000);
-
-        return () => clearInterval(interval);
     }, []);
+
+    useWebSocketModelos(fetchModelosActivos);
 
     return (
         <PageContainer>

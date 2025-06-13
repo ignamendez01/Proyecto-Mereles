@@ -1,8 +1,9 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {ButtonContainer, PageContainer, Button} from "../../../components/Styles";
 import TablaRemito from "../Common/TablaRemito";
 import axios from "axios";
+import {useWebSocketRemitos} from "../../../components/hooks/useWebSocketRemitos";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -14,33 +15,20 @@ const BajaColada = () => {
     const [selectedRemito, setSelectedRemito] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    const prevRemitosRef = useRef([]);
+    const fetchRemitosLocales = () => {
+        const token = localStorage.getItem("token");
+        axios.get(`${API_URL}/remitos/locales`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(response => setRemitos(response.data))
+            .catch(error => console.error("Error al obtener remitos:", error));
+    };
 
     useEffect(() => {
-        const fetchRemitosLocales = () => {
-            const token = localStorage.getItem("token");
-
-            axios.get(`${API_URL}/remitos/locales`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            })
-                .then(response => {
-                    const nuevosRemitos = response.data;
-
-                    if (JSON.stringify(prevRemitosRef.current) !== JSON.stringify(nuevosRemitos)) {
-                        setRemitos(response.data);
-                        prevRemitosRef.current = nuevosRemitos;
-                    }
-                })
-                .catch(error => console.error("Error al obtener remitos:", error));
-        };
-
         fetchRemitosLocales();
-        const interval = setInterval(fetchRemitosLocales, 1000);
-
-        return () => clearInterval(interval);
     }, []);
+
+    useWebSocketRemitos(fetchRemitosLocales);
 
     useEffect(() => {
         if (selectedRemito) {
@@ -81,6 +69,7 @@ const BajaColada = () => {
                 setSelectedId("");
                 setSelectedRemito(null);
                 setIsLoading(false);
+                fetchRemitosLocales();
             })
             .catch(error => console.error("Error al eliminar remito:", error));
     };

@@ -1,10 +1,12 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
 import {ButtonContainer, PageContainer, Button} from "../../../components/Styles";
 import TablaColada from "../Common/TablaColada";
 import ColadaModal, {Img} from "../Common/ColadaModal";
 import axios from "axios";
 import notImage from "../../../resources/No_Image_Available.jpg";
+import {useWebSocketTachos} from "../../../components/hooks/useWebSocketTachos";
+import {useWebSocketRemitos} from "../../../components/hooks/useWebSocketRemitos";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -26,33 +28,20 @@ const ModificarColada = () => {
     const [isLoading, setIsLoading] = useState(false);
     const imagenPorDefecto = notImage;
 
-    const prevRemitosRef = useRef([]);
+    const fetchRemitosLocales = () => {
+        const token = localStorage.getItem("token");
+        axios.get(`${API_URL}/remitos/locales`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(response => setRemitos(response.data))
+            .catch(error => console.error("Error al obtener remitos:", error));
+    };
 
     useEffect(() => {
-        const fetchRemitosLocales = () => {
-            const token = localStorage.getItem("token");
-
-            axios.get(`${API_URL}/remitos/locales`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            })
-                .then(response => {
-                    const nuevosRemitos = response.data;
-
-                    if (JSON.stringify(prevRemitosRef.current) !== JSON.stringify(nuevosRemitos)) {
-                        setRemitos(response.data);
-                        prevRemitosRef.current = nuevosRemitos;
-                    }
-                })
-                .catch(error => console.error("Error al obtener remitos:", error));
-        };
-
         fetchRemitosLocales();
-        const interval = setInterval(fetchRemitosLocales, 1000);
-
-        return () => clearInterval(interval);
     }, []);
+
+    useWebSocketRemitos(fetchRemitosLocales);
 
     useEffect(() => {
         if (selectedId) {
@@ -122,33 +111,20 @@ const ModificarColada = () => {
         }
     };
 
-    const prevTachosRef = useRef([]);
+    const fetchTachosActivos = () => {
+        const token = localStorage.getItem("token");
+        axios.get(`${API_URL}/tachos/activos`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(response => setTachos(response.data))
+            .catch(error => console.error("Error al obtener tachos:", error));
+    };
 
     useEffect(() => {
-        const fetchTachosActivos = () => {
-            const token = localStorage.getItem("token");
-
-            axios.get(`${API_URL}/tachos/activos`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            })
-                .then(response => {
-                    const nuevosTachos = response.data;
-
-                    if (JSON.stringify(prevTachosRef.current) !== JSON.stringify(nuevosTachos)) {
-                        setTachos(nuevosTachos);
-                        prevTachosRef.current = nuevosTachos;
-                    }
-                })
-                .catch(error => console.error("Error al obtener tachos:", error));
-        };
-
         fetchTachosActivos();
-        const interval = setInterval(fetchTachosActivos, 1000);
-
-        return () => clearInterval(interval);
     }, []);
+
+    useWebSocketTachos(fetchTachosActivos);
 
     useEffect(() => {
         if (selectedTachoId) {
@@ -240,6 +216,7 @@ const ModificarColada = () => {
                 setSelectedTachoId("");
                 setSelectedTachoPeso("");
                 setIsLoading(false);
+                fetchRemitosLocales();
             })
             .catch(error => console.error("Error al editar remito:", error));
     };

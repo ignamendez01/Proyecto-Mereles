@@ -1,16 +1,16 @@
 {
   "files": {
     "main.css": "/Proyecto-Mereles/static/css/main.3f84d199.css",
-    "main.js": "/Proyecto-Mereles/static/js/main.06e8c165.js",
-    "static/js/488.3ea2789d.chunk.js": "/Proyecto-Mereles/static/js/488.3ea2789d.chunk.js",
+    "main.js": "/Proyecto-Mereles/static/js/main.252b6807.js",
+    "static/js/488.d26b4ade.chunk.js": "/Proyecto-Mereles/static/js/488.d26b4ade.chunk.js",
     "static/media/No_Image_Available.jpg": "/Proyecto-Mereles/static/media/No_Image_Available.e1ce751ef1b590f719f9.jpg",
     "index.html": "/Proyecto-Mereles/index.html",
     "main.3f84d199.css.map": "/Proyecto-Mereles/static/css/main.3f84d199.css.map",
-    "main.06e8c165.js.map": "/Proyecto-Mereles/static/js/main.06e8c165.js.map",
-    "488.3ea2789d.chunk.js.map": "/Proyecto-Mereles/static/js/488.3ea2789d.chunk.js.map"
+    "main.252b6807.js.map": "/Proyecto-Mereles/static/js/main.252b6807.js.map",
+    "488.d26b4ade.chunk.js.map": "/Proyecto-Mereles/static/js/488.d26b4ade.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.3f84d199.css",
-    "static/js/main.06e8c165.js"
+    "static/js/main.252b6807.js"
   ]
 }
